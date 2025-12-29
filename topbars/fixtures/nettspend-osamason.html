@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Topbars - Nettspend and Osamason (fixture)</title>
+  <style>
+    body { font-family: monospace; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+    h1, h2 { font-weight: normal; }
+    h1 { border-bottom: 2px solid #000; padding-bottom: 10px; }
+    hr { border: none; border-top: 1px solid #000; margin: 20px 0; }
+    button { margin-top: 15px; padding: 10px 30px; font-family: monospace; font-size: 14px; background: #000; color: #fff; border: none; cursor: pointer; margin-right: 10px; }
+    button:hover { background: #333; }
+    .summary { background: #eee; padding: 15px; margin: 20px 0; }
+    .ranked-bar {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      margin: 8px 0;
+      background: #f9f9f9;
+    }
+    .bar-rank {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #999;
+      min-width: 32px;
+      flex-shrink: 0;
+    }
+    .bar-cover {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: #ddd;
+    }
+    .bar-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .bar-lyric {
+      font-style: italic;
+      line-height: 1.5;
+      word-wrap: break-word;
+      max-width: 65ch;
+    }
+    .bar-meta {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 4px;
+    }
+    .bar-note {
+      font-size: 0.85em;
+      margin-top: 6px;
+      color: #444;
+      padding-left: 10px;
+      border-left: 2px solid #ddd;
+    }
+    textarea { width: 100%; height: 200px; font-family: monospace; font-size: 0.9em; }
+    a { color: #000; }
+    .fixture-badge { background: #ffcc00; padding: 4px 8px; font-size: 0.8em; margin-left: 10px; }
+    .loading { padding: 20px; background: #ffffcc; }
+  </style>
+</head>
+<body>
+  <h1>TOPBARS v0 <span class="fixture-badge">FIXTURE</span></h1>
+  <div id="loading" class="loading">Loading fixture data...</div>
+
+  <div id="content" style="display:none">
+    <div class="summary" id="summary"></div>
+    <hr>
+    <h2>TOP BARS (by votes)</h2>
+    <div id="bars"></div>
+    <hr>
+    <h2>LINE BANK</h2>
+    <p>All bars, one per line. Copy for caption/tweet inspo.</p>
+    <button onclick="copyLineBank()">Copy Line Bank</button>
+    <textarea id="lineBank" readonly></textarea>
+  </div>
+
+  <script>
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderResults(data) {
+      document.getElementById('summary').innerHTML = `
+        <strong>Playlist:</strong> <a href="${escapeHtml(data.playlist.url)}" target="_blank">${escapeHtml(data.playlist.name)}</a><br>
+        <strong>Tracks:</strong> ${data.summary.tracks_total}<br>
+        <strong>Matched to Genius:</strong> ${data.summary.matched}<br>
+        <strong>With bars:</strong> ${data.summary.with_bars}
+      `;
+
+      let allBars = [];
+      for (const track of data.tracks) {
+        for (const bar of track.topbars) {
+          allBars.push({
+            lyric: bar.lyric,
+            votes: bar.votes,
+            note: bar.note,
+            cover: track.spotify.cover,
+            artist: track.spotify.artist,
+            title: track.spotify.title
+          });
+        }
+      }
+      allBars.sort((a, b) => b.votes - a.votes);
+
+      let barsHtml = '';
+      let lineBank = [];
+
+      allBars.forEach((bar, i) => {
+        const lyric = bar.lyric.replace(/\n/g, ' / ');
+        const coverImg = bar.cover
+          ? `<img src="${escapeHtml(bar.cover)}" class="bar-cover" alt="">`
+          : `<div class="bar-cover"></div>`;
+
+        barsHtml += `
+          <div class="ranked-bar">
+            <div class="bar-rank">#${i + 1}</div>
+            ${coverImg}
+            <div class="bar-content">
+              <div class="bar-lyric">"${escapeHtml(lyric)}"</div>
+              <div class="bar-meta">${bar.votes} votes · ${escapeHtml(bar.artist)} — ${escapeHtml(bar.title)}</div>
+              ${bar.note ? `<div class="bar-note">${escapeHtml(bar.note)}</div>` : ''}
+            </div>
+          </div>
+        `;
+        lineBank.push(lyric.replace(/\s+/g, ' ').trim());
+      });
+
+      document.getElementById('bars').innerHTML = barsHtml || '<p style="color:#999">No bars found.</p>';
+      document.getElementById('lineBank').value = lineBank.join('\n');
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+    }
+
+    function copyLineBank() {
+      const textarea = document.getElementById('lineBank');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Copied!');
+    }
+
+    fetch('playlist-2.json')
+      .then(res => res.json())
+      .then(renderResults)
+      .catch(err => {
+        document.getElementById('loading').textContent = 'Error loading fixture: ' + err.message;
+      });
+  </script>
+</body>
+</html>

@@ -274,9 +274,23 @@ function isGarbage(fragment: string): boolean {
   return GARBAGE.some(p => p.test(t));
 }
 
+interface GeniusReferent {
+  id: number;
+  fragment: string;
+  classification: string; // "accepted" | "unreviewed"
+  annotations: Array<{
+    id: number;
+    votes_total: number;
+    state: string; // "accepted" | "pending"
+    has_voters: boolean;
+    body?: { dom?: DomNode };
+    authors?: Array<{ user?: { iq?: number } }>;
+  }>;
+}
+
 async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: string | null }> {
   try {
-    const refs = await geniusFetch<{ referents: Array<{ id: number; fragment: string; annotations: Array<{ id: number; votes_total: number; body?: { dom?: DomNode } }> }> }>(`/referents?song_id=${songId}&per_page=50`);
+    const refs = await geniusFetch<{ referents: GeniusReferent[] }>(`/referents?song_id=${songId}&per_page=50`);
 
     const candidates: Array<Bar & { score: number }> = [];
 
@@ -284,15 +298,38 @@ async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: str
       if (!ref.fragment || isGarbage(ref.fragment)) continue;
 
       for (const ann of ref.annotations) {
+        // Skip negative-voted annotations
+        if (ann.votes_total < 0) continue;
+
         const note = extractTextFromDom(ann.body?.dom);
+        const authorIq = ann.authors?.[0]?.user?.iq || 0;
+        const isAccepted = ref.classification === 'accepted' || ann.state === 'accepted';
+
+        // Quality-weighted scoring
         let score = ann.votes_total;
-        if (note.length > 10) score += 5;
-        if (ref.fragment.length >= 20 && ref.fragment.length <= 150) score += 3;
+
+        // Huge bonus for editor-accepted annotations (the gold standard)
+        if (isAccepted) score += 100;
+
+        // Bonus for high-IQ authors (experienced Genius contributors)
+        if (authorIq >= 10000) score += 30;
+        else if (authorIq >= 1000) score += 15;
+        else if (authorIq >= 100) score += 5;
+
+        // Bonus for annotations that have received any votes (community engagement)
+        if (ann.has_voters) score += 5;
+
+        // Bonus for substantive notes (indicates thoughtful analysis)
+        if (note.length > 50) score += 10;
+        else if (note.length > 10) score += 3;
+
+        // Prefer medium-length lyrics (not too short, not walls of text)
+        if (ref.fragment.length >= 20 && ref.fragment.length <= 150) score += 5;
 
         candidates.push({
           lyric: ref.fragment,
           votes: ann.votes_total,
-          note: note.length > 10 ? (note.length > 150 ? note.slice(0, 150) + '...' : note) : null,
+          note: note.length > 10 ? (note.length > 200 ? note.slice(0, 200) + '...' : note) : null,
           annotationId: ann.id,
           referentId: ref.id,
           score,
