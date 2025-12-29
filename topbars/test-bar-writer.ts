@@ -239,6 +239,85 @@ interface TestResult {
 }
 
 // ============================================================================
+// OUTPUT CLEANING
+// ============================================================================
+
+// Brand names and proper nouns to preserve capitalization
+const PRESERVE_CAPS = [
+  // Tech
+  'iPhone', 'iPad', 'Apple', 'Google', 'Netflix', 'Spotify', 'Amazon', 'Tesla',
+  'PlayStation', 'Xbox', 'Nintendo', 'Switch', 'Windows', 'Mac', 'Android',
+  'TikTok', 'Instagram', 'Facebook', 'Twitter', 'Snapchat', 'YouTube', 'Twitch',
+  'Uber', 'Lyft', 'Venmo', 'PayPal', 'Wi-Fi', 'WiFi', 'iMessage', 'Kindle', 'Siri',
+  // Cars
+  'BMW', 'Mercedes', 'Benz', 'Porsche', 'Ferrari', 'Lamborghini', 'Lambo',
+  'Audi', 'Lexus', 'Rolls', 'Royce', 'Bentley', 'Maybach',
+  // Fashion
+  'Gucci', 'Louis', 'Vuitton', 'Prada', 'Chanel', 'Dior', 'Versace',
+  'Balenciaga', 'Nike', 'Adidas', 'Jordan', 'Jordans', 'Yeezy', 'Supreme',
+  'Rolex', 'Cartier', 'Patek',
+  // Characters/Shows
+  'Garfield', 'SpongeBob', 'Spongebob', 'Pikachu', 'Pokemon', 'Mario', 'Zelda',
+  'GTA', 'Fortnite', 'Minecraft', 'Casper', 'Snorlax', 'Thanos', 'Batman',
+  'Drake', 'Kanye', 'Jay-Z', 'Beyonce', 'Cinderella', 'Disney', 'Marvel',
+  'Odell', 'LeBron', 'Kobe', 'Curry', 'Brady', 'Ferb', 'Phineas',
+  // Days
+  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+  // Places
+  'LA', 'NYC', 'Miami', 'Atlanta', 'ATL', 'Houston', 'Chicago', 'Hollywood',
+  // Other
+  'MySpace', 'Java', 'API', 'GPS', 'ATM', 'VIP', 'NBA', 'NFL', 'MLB',
+];
+
+const preservePattern = new RegExp(
+  `\\b(${PRESERVE_CAPS.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+  'gi'
+);
+
+/** Clean a single bar text */
+function cleanBarText(text: string): string {
+  let cleaned = text
+    .replace(/^["'"'"«»„"]+|["'"'"«»„"]+$/g, '')  // Remove surrounding quotes
+    .replace(/\s*[—–-]{1,2}\s*/g, ', ')            // Replace dashes with comma
+    .replace(/[.!?;:""„""«»"']+/g, '')             // Remove punctuation
+    .replace(/\s+/g, ' ')                           // Normalize whitespace
+    .replace(/,\s*,/g, ',')                         // Remove double commas
+    .replace(/^,\s*|\s*,$/g, '')                    // Remove leading/trailing commas
+    .trim()
+    .toLowerCase();
+
+  // Restore capitalization for preserved words
+  cleaned = cleaned.replace(preservePattern, (match) => {
+    const found = PRESERVE_CAPS.find(w => w.toLowerCase() === match.toLowerCase());
+    return found || match;
+  });
+
+  // Capitalize standalone "I"
+  cleaned = cleaned.replace(/\bi\b/g, 'I');
+
+  return cleaned;
+}
+
+/** Clean bar text in output before saving */
+function cleanOutput(output: string): string {
+  const lines = output.split('\n');
+  const cleanedLines: string[] = [];
+
+  for (const line of lines) {
+    const barMatch = line.match(/^BAR (\d+):\s*(.+)$/);
+    if (barMatch) {
+      const barNum = barMatch[1];
+      const barText = barMatch[2].trim();
+      cleanedLines.push(`BAR ${barNum}: ${cleanBarText(barText)}`);
+    } else {
+      cleanedLines.push(line);
+    }
+  }
+
+  return cleanedLines.join('\n');
+}
+
+// ============================================================================
 // TEST RUNNER
 // ============================================================================
 
@@ -354,6 +433,13 @@ async function main() {
 
       // Rate limit
       await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_MS));
+    }
+  }
+
+  // Clean all outputs before saving
+  for (const result of results) {
+    if (result.output && !result.error) {
+      result.output = cleanOutput(result.output);
     }
   }
 
