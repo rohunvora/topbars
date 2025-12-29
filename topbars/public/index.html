@@ -5,111 +5,176 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Topbars v0</title>
   <style>
-    body {
-      font-family: monospace;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
-    }
-    h1 {
-      font-weight: normal;
-      border-bottom: 2px solid #000;
-      padding-bottom: 10px;
-    }
-    form {
-      margin: 30px 0;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      font-family: monospace;
-      font-size: 14px;
-      border: 1px solid #000;
-      box-sizing: border-box;
-    }
-    button {
-      margin-top: 15px;
-      padding: 10px 30px;
-      font-family: monospace;
-      font-size: 14px;
-      background: #000;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #333;
-    }
-    button:disabled {
-      background: #999;
-      cursor: not-allowed;
-    }
-    .loading {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #ffffcc;
-    }
-    .info {
-      margin-top: 30px;
-      padding: 15px;
-      background: #f5f5f5;
-      font-size: 0.9em;
-    }
-    .info p {
-      margin: 8px 0;
-    }
+    body { font-family: monospace; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+    h1, h2 { font-weight: normal; }
+    h1 { border-bottom: 2px solid #000; padding-bottom: 10px; }
+    hr { border: none; border-top: 1px solid #000; margin: 20px 0; }
+    input[type="text"] { width: 100%; padding: 10px; font-family: monospace; font-size: 14px; border: 1px solid #000; box-sizing: border-box; }
+    button { margin-top: 15px; padding: 10px 30px; font-family: monospace; font-size: 14px; background: #000; color: #fff; border: none; cursor: pointer; margin-right: 10px; }
+    button:hover { background: #333; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    .loading { display: none; margin-top: 20px; padding: 15px; background: #ffffcc; }
+    .info { margin-top: 30px; padding: 15px; background: #f5f5f5; font-size: 0.9em; }
+    .info p { margin: 8px 0; }
+    .error { background: #ffcccc; padding: 15px; margin: 20px 0; display: none; }
+    .results { display: none; }
+    .summary { background: #eee; padding: 15px; margin: 20px 0; }
+    .track { margin: 20px 0; padding-bottom: 15px; border-bottom: 1px dashed #ccc; }
+    .track-title { font-weight: bold; }
+    .bar { margin: 10px 0; padding: 10px; background: #f9f9f9; }
+    .bar-lyric { font-style: italic; }
+    .bar-meta { font-size: 0.85em; color: #666; }
+    .bar-note { font-size: 0.9em; margin-top: 5px; color: #333; }
+    .fallback { color: #999; font-style: italic; }
+    .line-bank { background: #ffffcc; padding: 15px; margin: 20px 0; }
+    textarea { width: 100%; height: 200px; font-family: monospace; font-size: 0.9em; }
+    a { color: #000; }
   </style>
 </head>
 <body>
   <h1>TOPBARS v0</h1>
-
   <p>Paste a Spotify playlist URL. Get top annotated bars (lyric snippets) from Genius for each track.</p>
 
-  <form method="POST" action="/generate" id="form">
+  <form id="form">
     <label for="url">Spotify Playlist URL:</label>
-    <input
-      type="text"
-      id="url"
-      name="url"
-      placeholder="https://open.spotify.com/playlist/..."
-      required
-    >
+    <input type="text" id="url" name="url" placeholder="https://open.spotify.com/playlist/..." required>
     <button type="submit" id="btn">Generate</button>
   </form>
 
-  <div class="loading" id="loading">
-    Processing playlist... This may take a minute for large playlists.
+  <div class="loading" id="loading">Processing playlist... This may take a minute.</div>
+  <div class="error" id="error"></div>
+
+  <div class="results" id="results">
+    <div class="summary" id="summary"></div>
+    <hr>
+    <h2>TRACKS</h2>
+    <div id="tracks"></div>
+    <hr>
+    <h2>LINE BANK</h2>
+    <p>All bars, one per line. Copy for caption/tweet inspo.</p>
+    <button onclick="copyLineBank()">Copy Line Bank</button>
+    <button onclick="downloadJson()">Download JSON</button>
+    <textarea id="lineBank" readonly></textarea>
   </div>
 
-  <div class="info">
+  <div class="info" id="info">
     <p><strong>What this does:</strong></p>
     <p>1. Fetches all tracks from your Spotify playlist</p>
     <p>2. Matches each track to Genius</p>
     <p>3. Extracts top 1-3 annotated lyric snippets ("bars") per track</p>
     <p>4. Gives you a "line bank" to copy for captions/tweets</p>
-
-    <p><strong>Limitations (honest):</strong></p>
-    <p>- Only shows bars available via official Genius API</p>
+    <p><strong>Limitations:</strong></p>
+    <p>- Only bars available via official Genius API</p>
     <p>- Not all songs have annotations</p>
-    <p>- Does NOT show full lyrics</p>
   </div>
 
   <script>
-    const form = document.getElementById('form');
-    const btn = document.getElementById('btn');
-    const loading = document.getElementById('loading');
+    let resultData = null;
 
-    form.addEventListener('submit', function() {
+    document.getElementById('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const btn = document.getElementById('btn');
+      const loading = document.getElementById('loading');
+      const error = document.getElementById('error');
+      const results = document.getElementById('results');
+      const info = document.getElementById('info');
+      const url = document.getElementById('url').value;
+
       btn.disabled = true;
       btn.textContent = 'Processing...';
       loading.style.display = 'block';
+      error.style.display = 'none';
+      results.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        resultData = data;
+        renderResults(data);
+        results.style.display = 'block';
+        info.style.display = 'none';
+
+      } catch (err) {
+        error.textContent = err.message;
+        error.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate';
+        loading.style.display = 'none';
+      }
     });
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderResults(data) {
+      // Summary
+      document.getElementById('summary').innerHTML = `
+        <strong>Playlist:</strong> <a href="${escapeHtml(data.playlist.url)}" target="_blank">${escapeHtml(data.playlist.name)}</a><br>
+        <strong>Tracks:</strong> ${data.summary.tracks_total}<br>
+        <strong>Matched to Genius:</strong> ${data.summary.matched}<br>
+        <strong>With bars:</strong> ${data.summary.with_bars}
+      `;
+
+      // Tracks
+      let tracksHtml = '';
+      let lineBank = [];
+
+      for (const track of data.tracks) {
+        tracksHtml += `<div class="track"><div class="track-title">${escapeHtml(track.spotify.artist)} - ${escapeHtml(track.spotify.title)}</div>`;
+
+        if (track.topbars.length > 0) {
+          for (const bar of track.topbars) {
+            const lyric = bar.lyric.replace(/\n/g, ' / ');
+            tracksHtml += `<div class="bar">
+              <div class="bar-lyric">"${escapeHtml(lyric)}"</div>
+              <div class="bar-meta">${bar.votes} votes</div>
+              ${bar.note ? `<div class="bar-note">${escapeHtml(bar.note)}</div>` : ''}
+            </div>`;
+            lineBank.push(lyric.replace(/\s+/g, ' ').trim());
+          }
+        } else {
+          tracksHtml += `<div class="fallback">${escapeHtml(track.fallback || 'No bars')}</div>`;
+        }
+
+        tracksHtml += '</div>';
+      }
+
+      document.getElementById('tracks').innerHTML = tracksHtml;
+      document.getElementById('lineBank').value = lineBank.join('\n');
+    }
+
+    function copyLineBank() {
+      const textarea = document.getElementById('lineBank');
+      textarea.select();
+      document.execCommand('copy');
+      alert('Copied!');
+    }
+
+    function downloadJson() {
+      if (!resultData) return;
+      const blob = new Blob([JSON.stringify(resultData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `topbars-${resultData.playlist.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   </script>
 </body>
 </html>
