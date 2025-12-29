@@ -63,14 +63,20 @@ let spotifyToken: { token: string; expiresAt: number } | null = null;
 
 async function getSpotifyToken(): Promise<string> {
   if (spotifyToken && Date.now() < spotifyToken.expiresAt - 60000) {
+    console.log('[spotify] Using cached token');
     return spotifyToken.token;
   }
 
   const clientId = process.env.SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
+  console.log('[spotify] Attempting auth...');
+  console.log('[spotify] CLIENT_ID present:', !!clientId, clientId ? `(${clientId.slice(0, 8)}...)` : '');
+  console.log('[spotify] CLIENT_SECRET present:', !!clientSecret, clientSecret ? `(${clientSecret.length} chars)` : '');
+
   if (!clientId || !clientSecret) {
-    throw new Error('Missing Spotify credentials');
+    console.error('[spotify] ERROR: Missing credentials');
+    throw new Error('Missing Spotify credentials - check SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET env vars');
   }
 
   const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
@@ -83,9 +89,14 @@ async function getSpotifyToken(): Promise<string> {
     body: 'grant_type=client_credentials',
   });
 
-  if (!res.ok) throw new Error('Spotify auth failed');
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('[spotify] Auth failed:', res.status, errorText);
+    throw new Error(`Spotify auth failed (${res.status}): ${errorText}`);
+  }
 
   const data = await res.json() as { access_token: string; expires_in: number };
+  console.log('[spotify] Auth successful, token expires in', data.expires_in, 'seconds');
   spotifyToken = { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
   return spotifyToken.token;
 }
@@ -97,15 +108,23 @@ function parsePlaylistUrl(url: string): string | null {
 
 async function fetchPlaylist(playlistUrl: string): Promise<{ id: string; name: string; url: string; tracks: SpotifyTrack[] }> {
   const playlistId = parsePlaylistUrl(playlistUrl);
-  if (!playlistId) throw new Error('Invalid Spotify playlist URL');
+  if (!playlistId) {
+    console.error('[spotify] Invalid playlist URL:', playlistUrl);
+    throw new Error('Invalid Spotify playlist URL');
+  }
 
+  console.log('[spotify] Fetching playlist:', playlistId);
   const token = await getSpotifyToken();
 
   const playlistRes = await fetch(`${SPOTIFY_API}/playlists/${playlistId}?fields=id,name,external_urls`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
 
-  if (!playlistRes.ok) throw new Error(`Playlist not found (${playlistRes.status})`);
+  if (!playlistRes.ok) {
+    const errorText = await playlistRes.text();
+    console.error('[spotify] Playlist fetch failed:', playlistRes.status, errorText);
+    throw new Error(`Playlist not found (${playlistRes.status})`);
+  }
 
   const playlistData = await playlistRes.json() as { id: string; name: string; external_urls: { spotify: string } };
 
@@ -149,16 +168,25 @@ async function fetchPlaylist(playlistUrl: string): Promise<{ id: string; name: s
 const geniusCache = new Map<string, unknown>();
 
 async function geniusFetch<T>(endpoint: string): Promise<T> {
-  if (geniusCache.has(endpoint)) return geniusCache.get(endpoint) as T;
+  if (geniusCache.has(endpoint)) {
+    return geniusCache.get(endpoint) as T;
+  }
 
-  const token = process.env.GENIUS_ACCESS_TOKEN;
-  if (!token) throw new Error('Missing Genius token');
+  const token = process.env.GENIUS_ACCESS_TOKEN || process.env.CLIENT_ACCESS_TOKEN;
+  if (!token) {
+    console.error('[genius] ERROR: Missing token');
+    throw new Error('Missing Genius token - check GENIUS_ACCESS_TOKEN env var');
+  }
 
   const res = await fetch(`${GENIUS_API}${endpoint}`, {
     headers: { 'Authorization': `Bearer ${token}` },
   });
 
-  if (!res.ok) throw new Error(`Genius API error: ${res.status}`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('[genius] API error:', res.status, endpoint, errorText.slice(0, 200));
+    throw new Error(`Genius API error: ${res.status}`);
+  }
 
   const data = await res.json() as { response: T };
   geniusCache.set(endpoint, data.response);
@@ -277,11 +305,15 @@ async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: str
 // ============================================================================
 
 async function runPipeline(playlistUrl: string): Promise<PipelineResult> {
+  console.log('[pipeline] Starting for:', playlistUrl);
   const playlist = await fetchPlaylist(playlistUrl);
+  console.log('[pipeline] Playlist loaded:', playlist.name, '-', playlist.tracks.length, 'tracks');
 
   const trackResults: TrackResult[] = [];
 
-  for (const track of playlist.tracks) {
+  for (let i = 0; i < playlist.tracks.length; i++) {
+    const track = playlist.tracks[i];
+    console.log(`[pipeline] [${i + 1}/${playlist.tracks.length}] ${track.artist} - ${track.title}`);
     const genius = await matchTrack(track.title, track.artist);
 
     let topbars: Bar[] = [];
@@ -314,21 +346,32 @@ async function runPipeline(playlistUrl: string): Promise<PipelineResult> {
 // ============================================================================
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log('[handler] Request received:', req.method);
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { url } = req.body as { url?: string };
+  console.log('[handler] Playlist URL:', url);
 
   if (!url) {
     return res.status(400).json({ error: 'Missing playlist URL' });
   }
 
+  // Log env var presence (not values)
+  console.log('[handler] ENV check:');
+  console.log('  SPOTIFY_CLIENT_ID:', !!process.env.SPOTIFY_CLIENT_ID);
+  console.log('  SPOTIFY_CLIENT_SECRET:', !!process.env.SPOTIFY_CLIENT_SECRET);
+  console.log('  GENIUS_ACCESS_TOKEN:', !!process.env.GENIUS_ACCESS_TOKEN);
+  console.log('  CLIENT_ACCESS_TOKEN:', !!process.env.CLIENT_ACCESS_TOKEN);
+
   try {
     const result = await runPipeline(url);
+    console.log('[handler] Success! Tracks:', result.summary.tracks_total, 'Matched:', result.summary.matched);
     return res.status(200).json(result);
   } catch (error) {
-    console.error('Pipeline error:', error);
+    console.error('[handler] Pipeline error:', error);
     return res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
