@@ -217,12 +217,18 @@ function similarity(a: string, b: string): number {
 }
 
 async function matchTrack(title: string, artist: string): Promise<GeniusMatch> {
-  const query = encodeURIComponent(normalize(`${artist} ${title}`));
+  const normalizedQuery = normalize(`${artist} ${title}`);
+  const query = encodeURIComponent(normalizedQuery);
+
+  console.log(`[genius] Searching: "${normalizedQuery}"`);
 
   try {
     const res = await geniusFetch<{ hits: Array<{ result: { id: number; title: string; url: string; primary_artist: { name: string }; annotation_count: number } }> }>(`/search?q=${query}`);
 
+    console.log(`[genius] Got ${res.hits?.length || 0} hits`);
+
     if (!res.hits?.length) {
+      console.log('[genius] No hits found');
       return { matched: false, songId: null, url: null, title: null, artist: null, confidence: 0, annotationCount: 0 };
     }
 
@@ -236,6 +242,8 @@ async function matchTrack(title: string, artist: string): Promise<GeniusMatch> {
     const matched = best.score >= 0.5;
     const r = best.hit.result;
 
+    console.log(`[genius] Best match: "${r.title}" by ${r.primary_artist.name} (score: ${best.score.toFixed(2)}, matched: ${matched})`);
+
     return {
       matched,
       songId: matched ? r.id : null,
@@ -245,7 +253,8 @@ async function matchTrack(title: string, artist: string): Promise<GeniusMatch> {
       confidence: Math.round(best.score * 100) / 100,
       annotationCount: matched ? r.annotation_count : 0,
     };
-  } catch {
+  } catch (err) {
+    console.error('[genius] Search error:', err);
     return { matched: false, songId: null, url: null, title: null, artist: null, confidence: 0, annotationCount: 0 };
   }
 }
