@@ -44,7 +44,7 @@ for sid in $songs; do
     select($score >= 50) |
     {
       sid: ($sid | tonumber),
-      lyric: ($ref.fragment | gsub("\n"; " / "))[0:80],
+      lyric: ($ref.fragment | gsub("\n"; " / ")),
       score: $score,
       note_len: $len,
       votes: $ref.annotations[0].votes_total,
