@@ -288,6 +288,12 @@ interface GeniusReferent {
   }>;
 }
 
+// Regex patterns for note content analysis
+const POP_CULTURE_PATTERN = /movie|film|TV|show|series|song|album|brand|game|comic|cartoon|anime|social.?media|myspace|twitter|instagram|youtube|tiktok/i;
+const WORDPLAY_PATTERN = /wordplay|double.?meaning|pun|metaphor|compar|reference|refer|similar|entrepreneur|founder|company/i;
+const SHOUTOUT_PATTERN = /shout.?out|collaborat|name.?drop/i;
+const PRODUCER_TAG_PATTERN = /producer.?tag|tag\b/i;
+
 async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: string | null }> {
   try {
     const refs = await geniusFetch<{ referents: GeniusReferent[] }>(`/referents?song_id=${songId}&per_page=50`);
@@ -296,6 +302,9 @@ async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: str
 
     for (const ref of refs.referents || []) {
       if (!ref.fragment || isGarbage(ref.fragment)) continue;
+
+      // Skip producer tags (parenthesis-only lines)
+      if (/^\s*\(.*\)\s*$/.test(ref.fragment)) continue;
 
       for (const ann of ref.annotations) {
         // Skip negative-voted annotations
@@ -318,6 +327,19 @@ async function extractBars(songId: number): Promise<{ bars: Bar[]; fallback: str
 
         // Bonus for annotations that have received any votes (community engagement)
         if (ann.has_voters) score += 5;
+
+        // NOTE CONTENT ANALYSIS - detect clever vs boring bars
+        // Big bonus for pop culture references (movies, TV, games, social media)
+        if (POP_CULTURE_PATTERN.test(note)) score += 20;
+
+        // Bonus for wordplay/metaphor explanations
+        if (WORDPLAY_PATTERN.test(note)) score += 15;
+
+        // Penalty for shoutouts (not clever, just name-dropping)
+        if (SHOUTOUT_PATTERN.test(note)) score -= 15;
+
+        // Penalty for producer tag explanations
+        if (PRODUCER_TAG_PATTERN.test(note)) score -= 20;
 
         // Bonus for substantive notes (indicates thoughtful analysis)
         if (note.length > 50) score += 10;
