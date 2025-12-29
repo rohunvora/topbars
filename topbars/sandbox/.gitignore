@@ -1,7 +1,0 @@
-# Keep structure, ignore temp data
-data/*
-!data/.gitkeep
-
-# Keep scripts and tools
-!scripts/
-!tools/

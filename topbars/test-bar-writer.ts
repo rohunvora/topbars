@@ -1,34 +1,42 @@
 /**
- * Test script for bar-writer prompt
+ * BAR WRITER TEST SUITE
  *
- * Usage:
- *   OPENAI_API_KEY=sk-... npx tsx scripts/test-bar-writer.ts
+ * Runs the bar-writer prompt against 98 test inputs across 14 categories
+ * to validate output quality and consistency.
  *
- * Or add OPENAI_API_KEY to .env file
+ * USAGE:
+ *   npx tsx test-bar-writer.ts
+ *
+ * REQUIREMENTS:
+ *   - OPENAI_API_KEY in .env file (or parent directory)
+ *   - prompt/bar-writer.md must exist
+ *
+ * OUTPUTS:
+ *   - test-results/bar-writer-test-{timestamp}.json (raw data)
+ *   - test-results/bar-writer-test-{timestamp}.md (human readable report)
  */
 
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Load .env if exists (check both project root and parent)
-let envPath = path.join(__dirname, '..', '.env');
-if (!fs.existsSync(envPath)) {
-  envPath = path.join(__dirname, '..', '..', '.env');
-}
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf-8');
-  envContent.split('\n').forEach(line => {
-    const [key, ...valueParts] = line.split('=');
-    if (key && valueParts.length) {
-      process.env[key.trim()] = valueParts.join('=').trim();
-    }
-  });
-}
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
 
-// Test inputs organized by category
+const MODEL = 'gpt-5.2';
+const TEMPERATURE = 0.9;  // Higher = more creative variation
+const MAX_TOKENS = 500;   // Enough for 3 bar variations with explanations
+const RATE_LIMIT_MS = 500; // Delay between API calls to avoid rate limits
+
+// ============================================================================
+// TEST INPUTS BY CATEGORY
+// ============================================================================
+
 const TEST_INPUTS: Record<string, string[]> = {
-  // Core use case - should work well
+
+  // CORE USE CASES - These should work well
+
   'mundane_daily': [
     "I'm tired",
     "I woke up late",
@@ -98,7 +106,8 @@ const TEST_INPUTS: Record<string, string[]> = {
     "I started from nothing",
   ],
 
-  // Edge cases - interesting challenges
+  // EDGE CASES - Stress tests for the prompt
+
   'edge_short': [
     "No",
     "Yes",
@@ -159,7 +168,8 @@ const TEST_INPUTS: Record<string, string[]> = {
     "Today is Tuesday",
   ],
 
-  // Specific scenarios
+  // SPECIFIC SCENARIOS
+
   'scenarios': [
     "I'm at the gym",
     "I'm eating alone",
@@ -171,7 +181,8 @@ const TEST_INPUTS: Record<string, string[]> = {
     "I'm counting my money",
   ],
 
-  // Longer/complex inputs
+  // LONG/COMPLEX INPUTS
+
   'edge_long': [
     "I've been working on this project for months and nobody seems to appreciate how much effort I put in",
     "She said she loved me but her actions never matched her words and now I realize I was just an option",
@@ -179,13 +190,44 @@ const TEST_INPUTS: Record<string, string[]> = {
   ],
 };
 
-// Load the system prompt
+// ============================================================================
+// HELPERS
+// ============================================================================
+
+/** Load .env file from current directory or parent */
+function loadEnv(): void {
+  const paths = [
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '..', '.env'),
+  ];
+
+  for (const envPath of paths) {
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      content.split('\n').forEach(line => {
+        const [key, ...valueParts] = line.split('=');
+        if (key && valueParts.length) {
+          process.env[key.trim()] = valueParts.join('=').trim();
+        }
+      });
+      return;
+    }
+  }
+}
+
+/** Load the bar-writer system prompt */
 function loadSystemPrompt(): string {
-  const promptPath = path.join(__dirname, '..', 'prompts', 'bar-writer-v1.md');
+  const promptPath = path.join(__dirname, 'prompt', 'bar-writer.md');
+  if (!fs.existsSync(promptPath)) {
+    throw new Error(`System prompt not found at: ${promptPath}`);
+  }
   return fs.readFileSync(promptPath, 'utf-8');
 }
 
-// Test result type
+// ============================================================================
+// TYPES
+// ============================================================================
+
 interface TestResult {
   category: string;
   input: string;
@@ -196,44 +238,44 @@ interface TestResult {
   error?: string;
 }
 
-// Run a single test
+// ============================================================================
+// TEST RUNNER
+// ============================================================================
+
+/** Run a single test case */
 async function runTest(
   client: OpenAI,
   systemPrompt: string,
   input: string,
   category: string,
-  model: string
 ): Promise<TestResult> {
   const startTime = Date.now();
 
   try {
     const response = await client.chat.completions.create({
-      model: model,
+      model: MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: input }
       ],
-      temperature: 0.9,
-      max_completion_tokens: 500,
+      temperature: TEMPERATURE,
+      max_completion_tokens: MAX_TOKENS,
     });
-
-    const latencyMs = Date.now() - startTime;
-    const output = response.choices[0]?.message?.content || '[No response]';
 
     return {
       category,
       input,
-      output,
-      model,
+      output: response.choices[0]?.message?.content || '[No response]',
+      model: MODEL,
       timestamp: new Date().toISOString(),
-      latencyMs,
+      latencyMs: Date.now() - startTime,
     };
   } catch (error) {
     return {
       category,
       input,
       output: '',
-      model,
+      model: MODEL,
       timestamp: new Date().toISOString(),
       latencyMs: Date.now() - startTime,
       error: error instanceof Error ? error.message : String(error),
@@ -241,74 +283,15 @@ async function runTest(
   }
 }
 
-// Main test runner
-async function main() {
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    console.error('Error: OPENAI_API_KEY not found in environment or .env file');
-    console.error('Usage: OPENAI_API_KEY=sk-... npx tsx scripts/test-bar-writer.ts');
-    process.exit(1);
-  }
-
-  const client = new OpenAI({ apiKey });
-  const systemPrompt = loadSystemPrompt();
-
-  const model = 'gpt-5.2';
-
-  console.log(`\n🎤 Bar Writer Test Suite`);
-  console.log(`========================`);
-  console.log(`Model: ${model}`);
-  console.log(`System prompt: ${systemPrompt.length} chars`);
-
-  // Count total tests
-  const totalTests = Object.values(TEST_INPUTS).flat().length;
-  console.log(`Total tests: ${totalTests}\n`);
-
-  const results: TestResult[] = [];
-  let completed = 0;
-
-  // Run tests by category
-  for (const [category, inputs] of Object.entries(TEST_INPUTS)) {
-    console.log(`\n📁 Category: ${category}`);
-    console.log(`${'─'.repeat(40)}`);
-
-    for (const input of inputs) {
-      const result = await runTest(client, systemPrompt, input, category, model);
-      results.push(result);
-      completed++;
-
-      // Progress indicator
-      const status = result.error ? '❌' : '✓';
-      console.log(`${status} [${completed}/${totalTests}] "${input.slice(0, 40)}${input.length > 40 ? '...' : ''}" (${result.latencyMs}ms)`);
-
-      // Rate limiting - be nice to the API
-      await new Promise(resolve => setTimeout(resolve, 500));
-    }
-  }
-
-  // Save results
-  const outputDir = path.join(__dirname, '..', 'test-results');
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outputPath = path.join(outputDir, `bar-writer-test-${timestamp}.json`);
-
-  fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
-  console.log(`\n✅ Results saved to: ${outputPath}`);
-
-  // Also create a human-readable markdown report
-  const reportPath = path.join(outputDir, `bar-writer-test-${timestamp}.md`);
+/** Generate markdown report from results */
+function generateReport(results: TestResult[], totalTests: number): string {
   let report = `# Bar Writer Test Results\n\n`;
-  report += `**Model:** ${model}\n`;
+  report += `**Model:** ${MODEL}\n`;
   report += `**Date:** ${new Date().toISOString()}\n`;
   report += `**Total Tests:** ${totalTests}\n`;
   report += `**Errors:** ${results.filter(r => r.error).length}\n\n`;
 
-  // Group by category for readability
-  for (const [category, inputs] of Object.entries(TEST_INPUTS)) {
+  for (const [category] of Object.entries(TEST_INPUTS)) {
     report += `## ${category}\n\n`;
 
     const categoryResults = results.filter(r => r.category === category);
@@ -323,17 +306,82 @@ async function main() {
     }
   }
 
-  fs.writeFileSync(reportPath, report);
-  console.log(`📄 Report saved to: ${reportPath}`);
+  return report;
+}
 
-  // Summary stats
-  const avgLatency = results.reduce((sum, r) => sum + r.latencyMs, 0) / results.length;
+// ============================================================================
+// MAIN
+// ============================================================================
+
+async function main() {
+  // Load environment variables
+  loadEnv();
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.error('Error: OPENAI_API_KEY not found');
+    console.error('Add it to .env file or set as environment variable');
+    process.exit(1);
+  }
+
+  // Initialize
+  const client = new OpenAI({ apiKey });
+  const systemPrompt = loadSystemPrompt();
+  const totalTests = Object.values(TEST_INPUTS).flat().length;
+
+  console.log(`\n🎤 Bar Writer Test Suite`);
+  console.log(`========================`);
+  console.log(`Model: ${MODEL}`);
+  console.log(`Prompt: ${systemPrompt.length} chars`);
+  console.log(`Tests: ${totalTests}\n`);
+
+  // Run all tests
+  const results: TestResult[] = [];
+  let completed = 0;
+
+  for (const [category, inputs] of Object.entries(TEST_INPUTS)) {
+    console.log(`\n📁 ${category}`);
+    console.log(`${'─'.repeat(40)}`);
+
+    for (const input of inputs) {
+      const result = await runTest(client, systemPrompt, input, category);
+      results.push(result);
+      completed++;
+
+      const status = result.error ? '❌' : '✓';
+      const truncatedInput = input.length > 40 ? input.slice(0, 40) + '...' : input;
+      console.log(`${status} [${completed}/${totalTests}] "${truncatedInput}" (${result.latencyMs}ms)`);
+
+      // Rate limit
+      await new Promise(resolve => setTimeout(resolve, RATE_LIMIT_MS));
+    }
+  }
+
+  // Save results
+  const outputDir = path.join(__dirname, 'test-results');
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+  // JSON results
+  const jsonPath = path.join(outputDir, `bar-writer-test-${timestamp}.json`);
+  fs.writeFileSync(jsonPath, JSON.stringify(results, null, 2));
+
+  // Markdown report
+  const mdPath = path.join(outputDir, `bar-writer-test-${timestamp}.md`);
+  fs.writeFileSync(mdPath, generateReport(results, totalTests));
+
+  // Summary
+  const avgLatency = Math.round(results.reduce((sum, r) => sum + r.latencyMs, 0) / results.length);
   const errorCount = results.filter(r => r.error).length;
 
+  console.log(`\n✅ Results saved to: ${jsonPath}`);
+  console.log(`📄 Report saved to: ${mdPath}`);
   console.log(`\n📊 Summary:`);
-  console.log(`   Avg latency: ${Math.round(avgLatency)}ms`);
+  console.log(`   Avg latency: ${avgLatency}ms`);
   console.log(`   Errors: ${errorCount}/${totalTests}`);
-  console.log(`\nDone! Review the markdown report for quality assessment.`);
 }
 
 main().catch(console.error);
