@@ -22,6 +22,7 @@ Extract the best lyric "bars" from a Spotify playlist using Genius annotations.
 ### Data Stats (as of 2024-12-29)
 - **601 raw bars** from 88-track playlist
 - **289 filtered bars** after reductive filters
+- **24 curated liked bars** (manually selected gold standard)
 - **17 acc:true** (editor-verified quality bars)
 
 ### Quality Signals Discovered
@@ -29,6 +30,16 @@ Extract the best lyric "bars" from a Spotify playlist using Genius annotations.
 - High author IQ (>10k) correlates with quality
 - Votes alone don't guarantee quality - many high-vote bars are just hooks/ad-libs
 - **Wordplay/puns are the key pattern** - hard to detect algorithmically
+
+### Example Liked Bars
+```
+these niggas be talking like phineas but im like ferb i dont say s
+bitch im not tom but i need my space my space yeah
+i got paper like dunder
+treat her like a psp cause that bitch is a portable
+she was moving too fast i had to put that bitch in park
+they say he had that bread and then we turned him into toast
+```
 
 ### Reductive Filters Applied
 - Remove bars < 15 chars
@@ -50,6 +61,8 @@ topbars/
 ├── fixtures/
 │   ├── all_bars_601.jsonl      # Raw bar data (601 lines)
 │   ├── filtered_bars.json      # Filtered bars (289)
+│   ├── liked_bars.json         # 24 curated bars (gold standard)
+│   ├── liked_bars_clean.txt    # Clean format (lowercase, no punct)
 │   ├── rate_bars_v2.html       # Rating tool
 │   └── *.json                  # Cached playlist data
 └── vercel.json
@@ -78,19 +91,21 @@ Open `fixtures/rate_bars_v2.html` in browser to rate bars manually.
 ## TODO
 
 ### High Priority
-- [ ] **Rate the 289 filtered bars** - Use `fixtures/rate_bars_v2.html` to identify more patterns
-- [ ] **Build positive filter** - Use liked bars to identify wordplay/pun patterns (may need NLP)
+- [ ] **Build positive filter** - Use 24 liked bars to identify wordplay/pun patterns (may need NLP)
 - [ ] **Implement quality scoring** in API - Currently just returns raw bars
+- [ ] **Clean display format** - lowercase, no punctuation, no adlibs
 
 ### Medium Priority
 - [ ] Add more songs to test playlist and re-fetch bars
 - [ ] Track which songs have 0 annotations (bad Genius matches)
 - [ ] Build "annotation note" analysis - Genius notes often explain wordplay
+- [ ] Apply cleaning transform to all bars in display
 
 ### Low Priority / Ideas
 - [ ] Use Claude/LLM to classify bars as wordplay vs boring
 - [ ] Build shareable "top bars" view per playlist
 - [ ] Add manual bar submission for songs with no Genius data
+- [ ] Create embeddable widget for sharing bars
 
 ## Environment Variables
 
