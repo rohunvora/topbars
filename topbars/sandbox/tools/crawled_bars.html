@@ -1,0 +1,2485 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crawled Bars (295)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0a; 
+      color: #e0e0e0; 
+      margin: 0;
+      padding: 20px;
+      line-height: 1.4;
+    }
+    h1 { color: #fff; margin-bottom: 5px; }
+    .stats { color: #666; margin-bottom: 20px; font-size: 14px; }
+    .filters { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .filters button { 
+      padding: 8px 16px; 
+      background: #222; 
+      border: 1px solid #333; 
+      color: #aaa; 
+      border-radius: 20px; 
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .filters button.active { background: #333; color: #fff; border-color: #555; }
+    .bar { 
+      padding: 16px 20px; 
+      margin: 8px 0; 
+      background: #141414; 
+      border-radius: 8px;
+      border-left: 3px solid #333;
+    }
+    .bar.top { border-left-color: #f90; }
+    .bar.great { border-left-color: #0f0; }
+    .bar.good { border-left-color: #09f; }
+    .lyric { 
+      font-size: 18px; 
+      color: #fff;
+      font-weight: 300;
+      letter-spacing: 0.3px;
+    }
+    .meta { 
+      font-size: 12px; 
+      color: #555; 
+      margin-top: 8px;
+    }
+    .score { 
+      display: inline-block;
+      background: #222;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-right: 8px;
+    }
+    .score.high { background: #3a2a00; color: #f90; }
+    #count { color: #666; }
+  </style>
+</head>
+<body>
+  <h1>crawled bars</h1>
+  <div class="stats">295 quality bars from osamason, ken carson, nettspend</div>
+  
+  <div class="filters">
+    <button class="active" data-min="0">all (295)</button>
+    <button data-min="100">100+ pts</button>
+    <button data-min="120">120+ pts</button>
+    <button data-min="150">150+ pts</button>
+  </div>
+  
+  <div id="count"></div>
+  <div id="bars"></div>
+
+  <script>
+const bars = 
+[
+  {
+    "sid": 8632428,
+    "lyric": "Money",
+    "score": 204,
+    "note_len": 199,
+    "votes": 389,
+    "acc": false
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Make my avi pink like my biggest opp, UziRareUpdates (Woah)",
+    "score": 200,
+    "note_len": 1275,
+    "votes": 180,
+    "acc": true
+  },
+  {
+    "sid": 9217978,
+    "lyric": "I’m fucking on a MILF right now, I’m a motherfucker",
+    "score": 162,
+    "note_len": 420,
+    "votes": 135,
+    "acc": true
+  },
+  {
+    "sid": 8632428,
+    "lyric": "Yeah, bitch, I’m in this bih’ with Destroy Lonely",
+    "score": 158,
+    "note_len": 355,
+    "votes": 266,
+    "acc": false
+  },
+  {
+    "sid": 9185284,
+    "lyric": "Jennifer’s Body, my bitch is a hottie, my bitch is a boy eater",
+    "score": 153,
+    "note_len": 432,
+    "votes": 116,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "These niggas be talking like Phineas, but I’m like Ferb, I don’t say shit /  Yea",
+    "score": 151,
+    "note_len": 688,
+    "votes": 82,
+    "acc": true
+  },
+  {
+    "sid": 9830827,
+    "lyric": "Sent him to the cemetery and not the Haunted Mound",
+    "score": 146,
+    "note_len": 810,
+    "votes": 113,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "All black 2-3, LeBron with the heat (What? 23, 23) /  I was just in Miami in the",
+    "score": 144,
+    "note_len": 1241,
+    "votes": 69,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Two different names like Jace!",
+    "score": 140,
+    "note_len": 440,
+    "votes": 130,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "The last bitch I broke up with slit her wrist /  I’m trollin’, I just treat her ",
+    "score": 137,
+    "note_len": 767,
+    "votes": 55,
+    "acc": true
+  },
+  {
+    "sid": 9217978,
+    "lyric": "White diamond my body, let my white bitch say, “Nigga” (Shh)",
+    "score": 136,
+    "note_len": 140,
+    "votes": 153,
+    "acc": true
+  },
+  {
+    "sid": 9244743,
+    "lyric": "MexikoDro, my boy gon’ let it go, leave you at the park",
+    "score": 131,
+    "note_len": 532,
+    "votes": 42,
+    "acc": true
+  },
+  {
+    "sid": 9185284,
+    "lyric": "Fuck",
+    "score": 129,
+    "note_len": 315,
+    "votes": 109,
+    "acc": true
+  },
+  {
+    "sid": 10916152,
+    "lyric": "I feel like Future, but Gen Z, put some molly in them teeths",
+    "score": 127,
+    "note_len": 647,
+    "votes": 35,
+    "acc": true
+  },
+  {
+    "sid": 7401813,
+    "lyric": "I’m rockin’ Miyake Issey /  I mean, it’s Issey Miyake, you know what I meant",
+    "score": 126,
+    "note_len": 434,
+    "votes": 103,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Always wanted a Nicki Minaj, tell Scotty, “Beam me up”",
+    "score": 124,
+    "note_len": 827,
+    "votes": 28,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "Red rag, red flag, bitch, you better make peace (Yeah) /  I’m in this bitch with",
+    "score": 123,
+    "note_len": 596,
+    "votes": 27,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "Pentagram tatted, yeah, they thought I sold my soul",
+    "score": 123,
+    "note_len": 662,
+    "votes": 26,
+    "acc": true
+  },
+  {
+    "sid": 10523731,
+    "lyric": "I’m fuckin’ stylin’, you need to die lit (We gon’ be okay) /  Yeah, my mama know",
+    "score": 122,
+    "note_len": 553,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "Beno, he go crazy, you know that (What? What? Yeah)",
+    "score": 121,
+    "note_len": 536,
+    "votes": 63,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I’m not Drake, I’m not Future, but I’m on one /  They upped that Drac’, yeah, en",
+    "score": 121,
+    "note_len": 460,
+    "votes": 52,
+    "acc": true
+  },
+  {
+    "sid": 10960044,
+    "lyric": "And I’m not even twenty-seven, but I wanna be in the club, shit (Mhm)",
+    "score": 121,
+    "note_len": 522,
+    "votes": 22,
+    "acc": true
+  },
+  {
+    "sid": 8014569,
+    "lyric": "I’m rockin’ all black and my cross upside down, I’m not the Pope",
+    "score": 120,
+    "note_len": 648,
+    "votes": 20,
+    "acc": true
+  },
+  {
+    "sid": 8014569,
+    "lyric": "All of these niggas be fake like a BBL /  But my bitch all real",
+    "score": 118,
+    "note_len": 741,
+    "votes": 17,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "Make your own decisions, I’m not phased /  Just like Lil Uzi, baby girl, my love",
+    "score": 116,
+    "note_len": 372,
+    "votes": 42,
+    "acc": true
+  },
+  {
+    "sid": 8416251,
+    "lyric": "I come through, I’m dressed in all black like I was Satan, man",
+    "score": 116,
+    "note_len": 698,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 8415425,
+    "lyric": "Homixide, yeah, they snotty, they wipin’ your nose",
+    "score": 116,
+    "note_len": 517,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "Whole lotta motherfuckin’ niggas (Yeah)",
+    "score": 114,
+    "note_len": 570,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "Opp blunt got me coughin’, yeah (Yeah)",
+    "score": 112,
+    "note_len": 1582,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "Keep my hammer like I’m Thor, huh, but I’m more like Loki",
+    "score": 112,
+    "note_len": 467,
+    "votes": 35,
+    "acc": true
+  },
+  {
+    "sid": 10232328,
+    "lyric": "Sometimes I feel like Dennis, ’cause I’m a menace",
+    "score": 112,
+    "note_len": 601,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "If a nigga keep talking, we running in (Yeah) /  Get that nigga kicked out like ",
+    "score": 111,
+    "note_len": 854,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "You still waitin’ on the Pink Tape, huh",
+    "score": 111,
+    "note_len": 370,
+    "votes": 33,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Sweeped her off her feet, yeah, she Jasmine, yeah, and I’m Aladdin",
+    "score": 111,
+    "note_len": 562,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 9934926,
+    "lyric": "Iced out my mouth, went Alex Moss, I don’t know none ’bout Johnny Dang",
+    "score": 110,
+    "note_len": 447,
+    "votes": 30,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "I fuck with the vamps, but I’m werewolf times two (Yeah)",
+    "score": 110,
+    "note_len": 1018,
+    "votes": 41,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "Huh, huh, I’m on the X Files, huh, my bitch X’d up",
+    "score": 110,
+    "note_len": 569,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Shoutout to Tay-K, man, it’s time I did the race",
+    "score": 109,
+    "note_len": 609,
+    "votes": 39,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Believe in God to get out my deal like I’m Ma$e",
+    "score": 108,
+    "note_len": 466,
+    "votes": 26,
+    "acc": true
+  },
+  {
+    "sid": 8167844,
+    "lyric": "And all my niggas masked up, yeah, yeah, yeah, just like Bane",
+    "score": 108,
+    "note_len": 309,
+    "votes": 26,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "I’m going Mozart, I’m going Shakespeare",
+    "score": 108,
+    "note_len": 472,
+    "votes": 26,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "I wish I could go back in time to tell myself, “Your neck gon’ freeze”",
+    "score": 107,
+    "note_len": 478,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 9868808,
+    "lyric": "This dick her kryptonite, I got her dickmatized",
+    "score": 107,
+    "note_len": 400,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 11869500,
+    "lyric": "I bought my mama a whip (Slatt), straight out of cash, bitch (Woo) /  I bought m",
+    "score": 106,
+    "note_len": 680,
+    "votes": 32,
+    "acc": true
+  },
+  {
+    "sid": 8167844,
+    "lyric": "Them 7.62s hit his body, made him Harlem Shake",
+    "score": 106,
+    "note_len": 1240,
+    "votes": 33,
+    "acc": true
+  },
+  {
+    "sid": 10562778,
+    "lyric": "Lovato (Slatt), Lovato (Slatt), Demi Lovato (Boop-boop) /  Lovato (Boop-boop), L",
+    "score": 105,
+    "note_len": 701,
+    "votes": 31,
+    "acc": true
+  },
+  {
+    "sid": 10666619,
+    "lyric": "Uh, I went to Poland, do you still think that I’m jokin’? /  Yeah, uh, ain’t no ",
+    "score": 105,
+    "note_len": 274,
+    "votes": 51,
+    "acc": true
+  },
+  {
+    "sid": 10562778,
+    "lyric": "Lovato (Slatt), Lovato (Slatt), Demi Lovato (Boop-boop) /  Lovato (Boop-boop), L",
+    "score": 105,
+    "note_len": 701,
+    "votes": 31,
+    "acc": true
+  },
+  {
+    "sid": 11869500,
+    "lyric": "Yeah, let’s raise hell, bitch, yeah, let’s raise hell, bitch (Yeah) /  Woah, I’m",
+    "score": 103,
+    "note_len": 312,
+    "votes": 16,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "[Intro] /  Yeah /  This shit, this shit cray (This shit cray) /  This shit cray ",
+    "score": 102,
+    "note_len": 342,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 12704252,
+    "lyric": "Crash dummy, goin’ retarded, spendin’ cash money (Hahaha)",
+    "score": 102,
+    "note_len": 473,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 7660003,
+    "lyric": "Hell nah, you can’t be my BM, that’s just like extortion /  Hell nah, lil’ bitch",
+    "score": 102,
+    "note_len": 328,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "My life’s so unrated, I swear this shit a movie /  It’s made by A24, your shit w",
+    "score": 102,
+    "note_len": 500,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 9888279,
+    "lyric": "I caught her like a Pokémon, my bitch built like Mewtwo",
+    "score": 101,
+    "note_len": 597,
+    "votes": 82,
+    "acc": false
+  },
+  {
+    "sid": 9800185,
+    "lyric": "Put the blick down, I’ll beat yo’ ass just like Creed",
+    "score": 100,
+    "note_len": 280,
+    "votes": 40,
+    "acc": true
+  },
+  {
+    "sid": 8014569,
+    "lyric": "Lil’ boy, you should’ve signed to Opium, I laugh at that nigga, he slavin’",
+    "score": 100,
+    "note_len": 340,
+    "votes": 51,
+    "acc": true
+  },
+  {
+    "sid": 8632428,
+    "lyric": "I fucked your bitch, huh, ’cause you a scrub",
+    "score": 99,
+    "note_len": 523,
+    "votes": 18,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Niggas be doin’ fake drugs, that ain’t no Percocet, boy, that’s Fent’ (Huh, huh-",
+    "score": 99,
+    "note_len": 395,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "It’s Rick on my shoes and my motherfuckin’ jeans, dog",
+    "score": 99,
+    "note_len": 481,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 8014569,
+    "lyric": "Nah, he ain’t— he’s not even Teen X, fuck him",
+    "score": 99,
+    "note_len": 446,
+    "votes": 49,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "Her body like a Coca-Cola",
+    "score": 99,
+    "note_len": 376,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11192682,
+    "lyric": "And if the world was free, fetch up, I still wouldn’t give you nothin’",
+    "score": 99,
+    "note_len": 173,
+    "votes": 39,
+    "acc": true
+  },
+  {
+    "sid": 8922722,
+    "lyric": "I been fighting my demons, huh /  I been fighting my—, yeah /  I been fighting m",
+    "score": 98,
+    "note_len": 218,
+    "votes": 137,
+    "acc": false
+  },
+  {
+    "sid": 7401813,
+    "lyric": "I’m rockin’ this VET’ with a stick, lil’ bitch, but I’m not a veteran",
+    "score": 98,
+    "note_len": 418,
+    "votes": 46,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "Niggas ain’t sippin’ no drank, I pour more lines than bar code",
+    "score": 98,
+    "note_len": 370,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Adam Sandler, I’m an uncut gem, this the longest yard",
+    "score": 98,
+    "note_len": 325,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I’m on ten, my adrenaline pumpin’, yeah, just like Crank",
+    "score": 97,
+    "note_len": 306,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Novocaine (Ha), I don’t feel nothin’ (Ha)",
+    "score": 97,
+    "note_len": 366,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 9868808,
+    "lyric": "She asked why I keep my fire, said, “I’m like Thor with that hammer”",
+    "score": 97,
+    "note_len": 309,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "I go hard bitch, yeah, I go gore core",
+    "score": 97,
+    "note_len": 784,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 11192683,
+    "lyric": "Big flame like LeBron, fire, like fire",
+    "score": 97,
+    "note_len": 302,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 9908505,
+    "lyric": "I was in the cut, BabyChop gon’ score",
+    "score": 96,
+    "note_len": 350,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "London, Paris, Amsterdam, yeah, I’m overseas",
+    "score": 96,
+    "note_len": 126,
+    "votes": 72,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "V-A-M-P-I-R-E, I’m a vampire /  V-A-M-P-I-R-E, yeah, I got this bitch vamped out",
+    "score": 96,
+    "note_len": 436,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Opium my gang, somebody call Tyrone, they tryna clone us",
+    "score": 95,
+    "note_len": 392,
+    "votes": 0,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "Bitch, I’m not Tom, but I need my space, my space, yeah",
+    "score": 94,
+    "note_len": 333,
+    "votes": 39,
+    "acc": true
+  },
+  {
+    "sid": 8416251,
+    "lyric": "I get higher than a UFO, bitch, I’m an alien",
+    "score": 94,
+    "note_len": 663,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 10362204,
+    "lyric": "Feelin’ like Obama, uh /  I had Runtz up in my fuckin’ locker, yeah",
+    "score": 94,
+    "note_len": 565,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "When I’m in Miami, I feel like LeBron, number 6",
+    "score": 93,
+    "note_len": 132,
+    "votes": 67,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "X, yeah, lil’ Carti",
+    "score": 93,
+    "note_len": 480,
+    "votes": 37,
+    "acc": true
+  },
+  {
+    "sid": 12523846,
+    "lyric": "Bitch, I’m like Lil Tay-Tay, flexin’, I’m the youngest in it",
+    "score": 92,
+    "note_len": 221,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "I got G6 and a blunt, we can take off and get high at the same time",
+    "score": 92,
+    "note_len": 511,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Fully Tommy gun, shootin’ at the crowd /  Everybody run, everybody get down",
+    "score": 91,
+    "note_len": 519,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 7660003,
+    "lyric": "I got this bitch with an OnlyFans, yeah, she a super whore /  She’ll do whatever",
+    "score": 90,
+    "note_len": 409,
+    "votes": 31,
+    "acc": true
+  },
+  {
+    "sid": 10666619,
+    "lyric": "Fucked it up, ain’t buyin’ hoes, Fuck Swag tatted on my dick",
+    "score": 90,
+    "note_len": 322,
+    "votes": 30,
+    "acc": true
+  },
+  {
+    "sid": 11192685,
+    "lyric": "Pull up ASAP, yeah, what? Don’t be dumb",
+    "score": 90,
+    "note_len": 69,
+    "votes": 41,
+    "acc": true
+  },
+  {
+    "sid": 9908505,
+    "lyric": "Ugh, I’m off the X tryna leave a nigga dead",
+    "score": 89,
+    "note_len": 447,
+    "votes": 28,
+    "acc": true
+  },
+  {
+    "sid": 9934926,
+    "lyric": "I was fuckin’ on your bitch in my Rick Owens socks /  I was fuckin’ on your bitc",
+    "score": 89,
+    "note_len": 232,
+    "votes": 158,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Huh, huh, huh, huh, huh, huh /  Huh, huh, huh, huh, huh, huh, huh, ha /  Ha, ha,",
+    "score": 89,
+    "note_len": 417,
+    "votes": 29,
+    "acc": true
+  },
+  {
+    "sid": 10087323,
+    "lyric": "(ok is the hardest, I swear to God) /  (We gon’ be okay)",
+    "score": 89,
+    "note_len": 139,
+    "votes": 59,
+    "acc": true
+  },
+  {
+    "sid": 10523731,
+    "lyric": "And it’s like Bird Box, can’t see up out this Ghost (Ghost, Ghost, Ghost)",
+    "score": 89,
+    "note_len": 286,
+    "votes": 18,
+    "acc": true
+  },
+  {
+    "sid": 10087323,
+    "lyric": "Huh? What you meant you wanted love-love?",
+    "score": 88,
+    "note_len": 308,
+    "votes": 26,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "We the mafia, bitch, 808, yeah, mafia",
+    "score": 87,
+    "note_len": 477,
+    "votes": 24,
+    "acc": true
+  },
+  {
+    "sid": 10087323,
+    "lyric": "Hold my hand if you think it’s for life (Life, life) /  Can’t believe they gave ",
+    "score": 87,
+    "note_len": 443,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 11192683,
+    "lyric": "Bitch, I’m seventeen, kinda weird she like me, but I ain’t no child, bitch",
+    "score": 87,
+    "note_len": 440,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "Every day I wake up, I’m feelin’ myself like Bey and Nicki",
+    "score": 86,
+    "note_len": 84,
+    "votes": 32,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "I ain’t leavin’ no paper trail, yeah, this shit free",
+    "score": 86,
+    "note_len": 233,
+    "votes": 52,
+    "acc": true
+  },
+  {
+    "sid": 7660003,
+    "lyric": "Yeah, and we having sticks for ham niggas ’cause we don’t fuck with pork",
+    "score": 86,
+    "note_len": 139,
+    "votes": 52,
+    "acc": true
+  },
+  {
+    "sid": 9615202,
+    "lyric": "C-O-D, U.A.V., I got the drop on all them bitches",
+    "score": 86,
+    "note_len": 366,
+    "votes": 23,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "I’m still fightin’ my demons, wake me up, I’m dreamin’",
+    "score": 86,
+    "note_len": 106,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 9414900,
+    "lyric": "We on the East Coast (East Coast), bitch, I’m rockin’ real expensive fits",
+    "score": 86,
+    "note_len": 246,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 10960044,
+    "lyric": "All I wanna do is chill inside a slut truck",
+    "score": 86,
+    "note_len": 377,
+    "votes": 23,
+    "acc": true
+  },
+  {
+    "sid": 11045586,
+    "lyric": "And I said, and I said, “Yo”",
+    "score": 86,
+    "note_len": 113,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 6290606,
+    "lyric": "I rock diamonds, the Patek from Eliantte (What?)",
+    "score": 85,
+    "note_len": 395,
+    "votes": 20,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "I pull out the Wraith, me and my son",
+    "score": 85,
+    "note_len": 297,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 7660003,
+    "lyric": "Yeah, I might smoke an opp nigga, shawty, but I don’t fuck with ’Ports",
+    "score": 85,
+    "note_len": 228,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 10152228,
+    "lyric": "I popped the Tesla X",
+    "score": 85,
+    "note_len": 313,
+    "votes": 21,
+    "acc": true
+  },
+  {
+    "sid": 7401813,
+    "lyric": "If a nigga end up down bad, then I got bags that’s goin’ for sale",
+    "score": 84,
+    "note_len": 287,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Yeah, she go both ways (Huh, huh-huh)",
+    "score": 84,
+    "note_len": 269,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I’ma get rich without tryin’ even if I get shot nine times like 50 Cent (Huh, hu",
+    "score": 84,
+    "note_len": 215,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "I’m pourin’ this lean up /  I got X and I’m Promethazine’d up /  My bitch bad an",
+    "score": 84,
+    "note_len": 366,
+    "votes": 18,
+    "acc": true
+  },
+  {
+    "sid": 8415425,
+    "lyric": "Hellcat got a BBL, yeah, it came with a wide-body kit",
+    "score": 84,
+    "note_len": 211,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "I trap shit like Three 6",
+    "score": 84,
+    "note_len": 140,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "Trap house got 101, I’m havin’ more spots than Dalmatians",
+    "score": 84,
+    "note_len": 263,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "I hate bein’ sober",
+    "score": 84,
+    "note_len": 104,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11192683,
+    "lyric": "I ain’t been in the VA in, like, two months",
+    "score": 84,
+    "note_len": 262,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11079100,
+    "lyric": "We get high, get fat, yeah",
+    "score": 83,
+    "note_len": 73,
+    "votes": 27,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "I put hoes in check, Nike /  I give ’em three strikes, Adidas",
+    "score": 83,
+    "note_len": 264,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "When I was in school, I was skippin’ class, Ferris Bueller",
+    "score": 83,
+    "note_len": 227,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "He was flexin’ that watch too hard and he got that lil’ Patek took",
+    "score": 83,
+    "note_len": 266,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 8632428,
+    "lyric": "I been showin’ off my pain lately, I tatted up my sleeve, yeah",
+    "score": 82,
+    "note_len": 424,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "I knew I was a star as many times I drove the Wraith",
+    "score": 82,
+    "note_len": 490,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Need them drugs mean, I’m a fiend, I’m like Travis",
+    "score": 82,
+    "note_len": 172,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 11192692,
+    "lyric": "(You wanna do something fun?)",
+    "score": 82,
+    "note_len": 440,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 10140280,
+    "lyric": "Big shot sender, bitch, Lil O is not your buddy",
+    "score": 82,
+    "note_len": 189,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 9923460,
+    "lyric": "(Not such a bad kid once you get to know him) /  (Not such a bad kid once you ge",
+    "score": 82,
+    "note_len": 166,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I don’t smoke no LooseLeaf, bitch, this Grabba in my paper (Huh, huh-huh)",
+    "score": 81,
+    "note_len": 261,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "I been fighting my fashion habits, everything I like, buy twice",
+    "score": 81,
+    "note_len": 190,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9217978,
+    "lyric": "I fucked a virgin bitch, I put my dick in her, and that shit got stuck (Woah) / ",
+    "score": 81,
+    "note_len": 407,
+    "votes": 112,
+    "acc": false
+  },
+  {
+    "sid": 11392573,
+    "lyric": "Ed Hardy, I designed it, I’m the designer",
+    "score": 81,
+    "note_len": 126,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9798902,
+    "lyric": "In the TrapGoth castle, free ZAYGUAP",
+    "score": 81,
+    "note_len": 384,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 11192684,
+    "lyric": "Tweakin’ when I’m dolo, while I’m grippin’ on my cash cow",
+    "score": 81,
+    "note_len": 229,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 11045586,
+    "lyric": "(You wanna do something fun?)",
+    "score": 81,
+    "note_len": 440,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "Put my opp in a coffin, yeah (Skrrt)",
+    "score": 80,
+    "note_len": 497,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 8458391,
+    "lyric": "I mix the Wock’ with the red",
+    "score": 80,
+    "note_len": 325,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "Taurus",
+    "score": 80,
+    "note_len": 177,
+    "votes": 0,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "I go Laker, I mix up the purple with the yellow",
+    "score": 80,
+    "note_len": 358,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Cocaine sniffer, shawty bad as fuck /  K pop, ketamine, yeah, she gon’ lick it u",
+    "score": 80,
+    "note_len": 447,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 9934926,
+    "lyric": "My white ho got big titties, she remind me of Sydney Sweeney /  Sydney Sweeney, ",
+    "score": 79,
+    "note_len": 216,
+    "votes": 98,
+    "acc": false
+  },
+  {
+    "sid": 10613496,
+    "lyric": "Glock, SIG (Glock), MAC, FN (Yeah)",
+    "score": 79,
+    "note_len": 462,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 10795413,
+    "lyric": "Bitch, I’m the president, I might never vote, huh, huh",
+    "score": 79,
+    "note_len": 261,
+    "votes": 39,
+    "acc": true
+  },
+  {
+    "sid": 7660003,
+    "lyric": "I swear I could’ve been a dad, but I made that bitch abort it",
+    "score": 79,
+    "note_len": 191,
+    "votes": 38,
+    "acc": true
+  },
+  {
+    "sid": 10087323,
+    "lyric": "Late night in Richmond, uh-huh",
+    "score": 79,
+    "note_len": 96,
+    "votes": 59,
+    "acc": true
+  },
+  {
+    "sid": 9908505,
+    "lyric": "Just score it",
+    "score": 78,
+    "note_len": 326,
+    "votes": 66,
+    "acc": false
+  },
+  {
+    "sid": 6290606,
+    "lyric": "I just popped me a G6 (Yeah) /  You know that I love to stay high (Yeah)",
+    "score": 78,
+    "note_len": 224,
+    "votes": 37,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "She gon’ suck my soul out me, yeah, she on her knees /  Inhale, exhale, yeah, br",
+    "score": 78,
+    "note_len": 194,
+    "votes": 36,
+    "acc": true
+  },
+  {
+    "sid": 7401813,
+    "lyric": "Yeah, its Opium, lil’ bitch, I’m stamped /  Got that shit tatted next to my ear",
+    "score": 78,
+    "note_len": 273,
+    "votes": 37,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "Fives in this bitch, you know we bang that double-O",
+    "score": 78,
+    "note_len": 397,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "X chain came from Wafi, cost like one-sixty",
+    "score": 78,
+    "note_len": 357,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "I got Call of Duty sticks, load up",
+    "score": 78,
+    "note_len": 318,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 11706663,
+    "lyric": "I’m the lord of chaos, I got the moshpit in control",
+    "score": 78,
+    "note_len": 364,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 9355783,
+    "lyric": "Got a Seraph tee on, put it on my head",
+    "score": 78,
+    "note_len": 418,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 11192688,
+    "lyric": "Won’t give you up, I love you now",
+    "score": 78,
+    "note_len": 475,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "I’m so fresh, I got on calf leather, Kadoya pants",
+    "score": 77,
+    "note_len": 372,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 10087323,
+    "lyric": "I’m with twin in the Rich’, pour the Sprite (Drank)",
+    "score": 77,
+    "note_len": 263,
+    "votes": 34,
+    "acc": true
+  },
+  {
+    "sid": 11192692,
+    "lyric": "Was at Benihana before I even had a dollar",
+    "score": 77,
+    "note_len": 307,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "If there’s a Heaven, this bitch going to Hell",
+    "score": 76,
+    "note_len": 552,
+    "votes": 33,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I’m VL5 in this bitch, she ’bout to ride on this dick (Huh, huh-huh)",
+    "score": 76,
+    "note_len": 365,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 11192682,
+    "lyric": "I pull up to Sayso to smoke a ton",
+    "score": 76,
+    "note_len": 180,
+    "votes": 33,
+    "acc": true
+  },
+  {
+    "sid": 9800185,
+    "lyric": "My dick her Nyquil, I’m ’bout to fuck this bitch to sleep",
+    "score": 75,
+    "note_len": 116,
+    "votes": 30,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Got a Montana bae /  Her dad Billy Ray",
+    "score": 75,
+    "note_len": 183,
+    "votes": 31,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "I made them hoes flock before I copped the Lamborghini",
+    "score": 75,
+    "note_len": 359,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 8458391,
+    "lyric": "I put the purple Wockhardt in the Goyard bag, it’s red",
+    "score": 75,
+    "note_len": 327,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 9416447,
+    "lyric": "I was fuckin’ on a M.I.L.F., she was thirty-six",
+    "score": 75,
+    "note_len": 233,
+    "votes": 30,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "I been fighting my intrusive thoughts, I call them demons",
+    "score": 75,
+    "note_len": 73,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Pull up Lamborghini, skrrt, that’s a V10, yes, sir",
+    "score": 75,
+    "note_len": 456,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 10286343,
+    "lyric": "I know what you did last summer (You did)",
+    "score": 74,
+    "note_len": 164,
+    "votes": 29,
+    "acc": true
+  },
+  {
+    "sid": 9244743,
+    "lyric": "I’m goin’ stupid, yeah, yeah, yeah, I’m goin’ re—, yeah",
+    "score": 74,
+    "note_len": 25,
+    "votes": 149,
+    "acc": false
+  },
+  {
+    "sid": 11392573,
+    "lyric": "Trap jump like Jordan, I mean the trap jumpin’ like Ja",
+    "score": 73,
+    "note_len": 740,
+    "votes": 26,
+    "acc": false
+  },
+  {
+    "sid": 8643313,
+    "lyric": "I fuck Barbie bitches, yeah, yeah, all my hoes plastic",
+    "score": 72,
+    "note_len": 259,
+    "votes": 25,
+    "acc": true
+  },
+  {
+    "sid": 9615211,
+    "lyric": "Bitch, I’m in that mode like Naruto, I’m a nine-tailed fox",
+    "score": 71,
+    "note_len": 210,
+    "votes": 23,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "I’m fuckin’ this bitch at 3:16 a.m., I feel like Steve Austin",
+    "score": 71,
+    "note_len": 276,
+    "votes": 22,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "Put that lil’ ho in designer, like Lonely, ain’t havin’ no stylist, you know I’m",
+    "score": 71,
+    "note_len": 84,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9377314,
+    "lyric": "When the fuck these niggas gon’ free SEX?",
+    "score": 70,
+    "note_len": 161,
+    "votes": 20,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "She was moving too fast, I had to put that bitch in park",
+    "score": 70,
+    "note_len": 517,
+    "votes": 21,
+    "acc": false
+  },
+  {
+    "sid": 11079100,
+    "lyric": "Lil’ Hitech in the back",
+    "score": 69,
+    "note_len": 105,
+    "votes": 19,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "(Opium, niggas)",
+    "score": 69,
+    "note_len": 235,
+    "votes": 19,
+    "acc": true
+  },
+  {
+    "sid": 10795413,
+    "lyric": "This bitch must be delusional",
+    "score": 69,
+    "note_len": 214,
+    "votes": 18,
+    "acc": true
+  },
+  {
+    "sid": 11192682,
+    "lyric": "X, X, X, X, fuck love",
+    "score": 69,
+    "note_len": 113,
+    "votes": 19,
+    "acc": true
+  },
+  {
+    "sid": 10362204,
+    "lyric": "We was in New York high as shit listenin’ to Benihana",
+    "score": 69,
+    "note_len": 114,
+    "votes": 19,
+    "acc": true
+  },
+  {
+    "sid": 8922722,
+    "lyric": "(star made the beat, I just took it out the oven)",
+    "score": 68,
+    "note_len": 212,
+    "votes": 117,
+    "acc": false
+  },
+  {
+    "sid": 7660003,
+    "lyric": "Yeah, this ain’t the regular Lamb’, lil’ bitch, yeah, this Aventador",
+    "score": 68,
+    "note_len": 196,
+    "votes": 16,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "(Wake up—)",
+    "score": 68,
+    "note_len": 765,
+    "votes": 16,
+    "acc": false
+  },
+  {
+    "sid": 11368573,
+    "lyric": "You must been listening to Travis Scott, now you a fiend, huh?",
+    "score": 68,
+    "note_len": 110,
+    "votes": 17,
+    "acc": true
+  },
+  {
+    "sid": 10286343,
+    "lyric": "I told Lil’ Nett, “We gon’ spin back” (Yeah, beep)",
+    "score": 67,
+    "note_len": 56,
+    "votes": 34,
+    "acc": true
+  },
+  {
+    "sid": 9377314,
+    "lyric": "I’m with Stef, kick shit, NFL",
+    "score": 67,
+    "note_len": 198,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 10562778,
+    "lyric": "(ok is the hardest, I swear to God)",
+    "score": 67,
+    "note_len": 178,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 9185284,
+    "lyric": "I’m all in that bitch throat, huh, I’m ’bout to bust",
+    "score": 67,
+    "note_len": 62,
+    "votes": 94,
+    "acc": false
+  },
+  {
+    "sid": 9800185,
+    "lyric": "I’m the reason you got double B on yo’ feet /  Ain’t gotta ask if I’m good, I’m ",
+    "score": 67,
+    "note_len": 169,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "I got fangs in my mouth, but stare at the moon",
+    "score": 67,
+    "note_len": 114,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "[Part II]",
+    "score": 67,
+    "note_len": 250,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "All this money comin’ in and out like bank /  No Andrew Jackson’s, only Ben Fran",
+    "score": 67,
+    "note_len": 188,
+    "votes": 14,
+    "acc": true
+  },
+  {
+    "sid": 10562778,
+    "lyric": "(ok is the hardest, I swear to God)",
+    "score": 67,
+    "note_len": 178,
+    "votes": 15,
+    "acc": true
+  },
+  {
+    "sid": 8167844,
+    "lyric": "These niggas think we playin’, hell nah, this ain’t Nerf",
+    "score": 66,
+    "note_len": 104,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 8167844,
+    "lyric": "Hit that boy in his chest, hit his heart, now it’s chrome",
+    "score": 66,
+    "note_len": 151,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "Huh, huh, huh, huh, huh, huh /  One for the money, two for the show",
+    "score": 66,
+    "note_len": 280,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 9868808,
+    "lyric": "Every time we link, I swear it’s like we in the twilight zone /  Every time we l",
+    "score": 66,
+    "note_len": 765,
+    "votes": 13,
+    "acc": false
+  },
+  {
+    "sid": 11706663,
+    "lyric": "When I signed to the label, ha, they struck gold",
+    "score": 66,
+    "note_len": 185,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 8722677,
+    "lyric": "I said I won’t make it work /  But you could make it work, girl",
+    "score": 66,
+    "note_len": 151,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 9217978,
+    "lyric": "I’m a rockstar like KISS, yeah, yeah (I’m a rockstar like KISS, yeah, yeah)",
+    "score": 65,
+    "note_len": 125,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "Slick Rick, I’m in pirate mode",
+    "score": 65,
+    "note_len": 121,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 9718183,
+    "lyric": "These niggas be hatin’, Mister Moseby",
+    "score": 65,
+    "note_len": 587,
+    "votes": 11,
+    "acc": false
+  },
+  {
+    "sid": 10152228,
+    "lyric": "Like, Brink’ truck full of sticks",
+    "score": 65,
+    "note_len": 230,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 11192682,
+    "lyric": "Just touched down in the ’Raq, need to hit up Project Pat",
+    "score": 65,
+    "note_len": 276,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 11192683,
+    "lyric": "Huh, but fuck skippin’ classes with you, you a loser",
+    "score": 65,
+    "note_len": 129,
+    "votes": 11,
+    "acc": true
+  },
+  {
+    "sid": 11192688,
+    "lyric": "I’m with G-Money, smokin’ on a fuckin’ ounce, huh",
+    "score": 65,
+    "note_len": 131,
+    "votes": 10,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Bitch, I’m in the field like Call of Duty tryna up my rank",
+    "score": 64,
+    "note_len": 140,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "I told that lil’ ho to go pop that lil’ bean, shawty /  I get fly, smokin’ exoti",
+    "score": 64,
+    "note_len": 298,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Porsche GT3RS (Ha), got the wing out (Ha)",
+    "score": 64,
+    "note_len": 264,
+    "votes": 9,
+    "acc": true
+  },
+  {
+    "sid": 8458391,
+    "lyric": "’Cause I got a V12, and my engine is from hell",
+    "score": 64,
+    "note_len": 294,
+    "votes": 8,
+    "acc": true
+  },
+  {
+    "sid": 11196529,
+    "lyric": "AP Skele’ on my fist, no Rolex, yeah",
+    "score": 64,
+    "note_len": 615,
+    "votes": 8,
+    "acc": false
+  },
+  {
+    "sid": 9185284,
+    "lyric": "He ain’t puttin’ shit on, he just wanna dress like us",
+    "score": 63,
+    "note_len": 962,
+    "votes": 6,
+    "acc": false
+  },
+  {
+    "sid": 7401813,
+    "lyric": "Bitch, I stay booted off X, fuck a Xan’, yeah",
+    "score": 63,
+    "note_len": 853,
+    "votes": 7,
+    "acc": false
+  },
+  {
+    "sid": 7401813,
+    "lyric": "I just stay on my grind, I don’t even skate",
+    "score": 63,
+    "note_len": 279,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "I can’t find the exit, huh, huh, I’m on the highway",
+    "score": 63,
+    "note_len": 547,
+    "votes": 6,
+    "acc": false
+  },
+  {
+    "sid": 9888279,
+    "lyric": "She can feel the pressure, yeah, I’m beatin’ out her linin’ /  Yeah, I’m gettin’",
+    "score": 63,
+    "note_len": 570,
+    "votes": 7,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "You was gon’ die regardless, bitch, flip her, this a Jeff Hardy stick (Huh-huh)",
+    "score": 63,
+    "note_len": 204,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 8458391,
+    "lyric": "I’m totin’ that VECTOR, I’m totin’ that stick",
+    "score": 63,
+    "note_len": 236,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 9868808,
+    "lyric": "Balenci’ sandals, Balenci’ you /  I’ll put that b-b-b-b-b-b-blick right on you",
+    "score": 63,
+    "note_len": 107,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "[Part II]",
+    "score": 63,
+    "note_len": 184,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "[Part I]",
+    "score": 63,
+    "note_len": 162,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 11720605,
+    "lyric": "Inject codeine in my veins, I don’t need a cup",
+    "score": 63,
+    "note_len": 194,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 11196529,
+    "lyric": "At a Gucci store, and I’m like, “Where the Tom Ford?”",
+    "score": 63,
+    "note_len": 181,
+    "votes": 7,
+    "acc": true
+  },
+  {
+    "sid": 11192682,
+    "lyric": "(ok is the hardest, I swear to God)",
+    "score": 63,
+    "note_len": 185,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 11192688,
+    "lyric": "Became an architect in my sleep",
+    "score": 63,
+    "note_len": 545,
+    "votes": 6,
+    "acc": false
+  },
+  {
+    "sid": 10923108,
+    "lyric": "(Draco)",
+    "score": 62,
+    "note_len": 675,
+    "votes": 5,
+    "acc": false
+  },
+  {
+    "sid": 8632428,
+    "lyric": "And you not gang, you a lame, you a dub",
+    "score": 62,
+    "note_len": 482,
+    "votes": 34,
+    "acc": false
+  },
+  {
+    "sid": 7401813,
+    "lyric": "I put that lil’ bitch straight to sleep",
+    "score": 62,
+    "note_len": 172,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 9615170,
+    "lyric": "If there’s a Heaven, this bitch goin’ to Hell",
+    "score": 62,
+    "note_len": 552,
+    "votes": 4,
+    "acc": false
+  },
+  {
+    "sid": 9615170,
+    "lyric": "But I just found a bitch that’ll let me help her, yeah, my way /  My way, that m",
+    "score": 62,
+    "note_len": 638,
+    "votes": 5,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "My bitch on whatever I’m on, she like Tomb Raider (Huh, huh, huh-huh)",
+    "score": 62,
+    "note_len": 510,
+    "votes": 4,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "Maybach truck, hydraulics",
+    "score": 62,
+    "note_len": 280,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 8014569,
+    "lyric": "And every time your bitch see me roll up, she reminisce about how I lick it",
+    "score": 62,
+    "note_len": 575,
+    "votes": 5,
+    "acc": false
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Old ho tryna take advantage (Ha, ha) /  New ho remedial (Ha), she don’t understa",
+    "score": 62,
+    "note_len": 106,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Pick a number, add a double-0, these niggas be makin’ up blocks /  It’s only dou",
+    "score": 62,
+    "note_len": 512,
+    "votes": 4,
+    "acc": false
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Popped a Tesla (Ha), takin’ off on they ass (Ha)",
+    "score": 62,
+    "note_len": 118,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "She wanna go to Nobu, I bought her a 4 for $4",
+    "score": 62,
+    "note_len": 162,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "I’m the Black Panther, feel like T’Challa",
+    "score": 62,
+    "note_len": 136,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "I go Chrome Heart belt, cheetah",
+    "score": 62,
+    "note_len": 167,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "Huh, huh, the SRT came with a wide-body kit",
+    "score": 62,
+    "note_len": 280,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Slow up, G-Lock, Ski mask",
+    "score": 62,
+    "note_len": 184,
+    "votes": 5,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Long hair, Pocahontas, she a baddie",
+    "score": 62,
+    "note_len": 158,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 9514657,
+    "lyric": "Jumpin’ off a jet, I’m with st47ic and my bros",
+    "score": 62,
+    "note_len": 239,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 11192683,
+    "lyric": "(ok is the hardest, I swear to God)",
+    "score": 62,
+    "note_len": 185,
+    "votes": 4,
+    "acc": true
+  },
+  {
+    "sid": 9377314,
+    "lyric": "Off that X get your whole team lit",
+    "score": 61,
+    "note_len": 164,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 11681461,
+    "lyric": "Gun smoke out of the gun /  I just jumped out, I ain’t done",
+    "score": 61,
+    "note_len": 511,
+    "votes": 2,
+    "acc": false
+  },
+  {
+    "sid": 11277721,
+    "lyric": "Cost a stack, get up",
+    "score": 61,
+    "note_len": 731,
+    "votes": 2,
+    "acc": false
+  },
+  {
+    "sid": 9615170,
+    "lyric": "She was moving too fast, I had to put that bitch in park",
+    "score": 61,
+    "note_len": 517,
+    "votes": 2,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "I’m in this bitch off OxyContin, bitch, I’m too rich, you can’t tell me nothin’ ",
+    "score": 61,
+    "note_len": 159,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 11716694,
+    "lyric": "Pull out the ’K and I go dumb (Dumb)",
+    "score": 61,
+    "note_len": 210,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10613496,
+    "lyric": "X, weed, lean, yeah (Yeah)",
+    "score": 61,
+    "note_len": 245,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Chrome Hearts on, crosses up, but my life upside down",
+    "score": 61,
+    "note_len": 122,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 11692254,
+    "lyric": "Cocaine, Pelle Pelle jacket, Evisus to match it",
+    "score": 61,
+    "note_len": 237,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 8415425,
+    "lyric": "Hell nah, I ain’t leavin’ no shells, I got a shell catcher on the stick",
+    "score": 61,
+    "note_len": 158,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "I ran out of Wock’, ’bout to pour this red up",
+    "score": 61,
+    "note_len": 245,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10342234,
+    "lyric": "I tell her be 5, I’m with the 5ives, nah, for real",
+    "score": 61,
+    "note_len": 596,
+    "votes": 3,
+    "acc": false
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Catch your partner, turn you to a pallbearer",
+    "score": 61,
+    "note_len": 215,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Tennis chains on, hit like Serena and Venus",
+    "score": 61,
+    "note_len": 129,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "G-Lock .44 bullet, I’m standin’ my ground",
+    "score": 61,
+    "note_len": 103,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Alex Moss, YVL chain, cost like forty grand",
+    "score": 61,
+    "note_len": 271,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "Shop in New York, SoHo, we don’t shop at Neiman’s",
+    "score": 61,
+    "note_len": 106,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "I just poured in my soda, I’m sippin’ on lean /  I’m addicted to codeine, I’m ad",
+    "score": 61,
+    "note_len": 155,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 11368573,
+    "lyric": "Codeine, promethazine, I pour that lean up",
+    "score": 61,
+    "note_len": 147,
+    "votes": 3,
+    "acc": true
+  },
+  {
+    "sid": 9403606,
+    "lyric": "(ok is the hardest, I swear to God) /  (We gon’ be okay)",
+    "score": 61,
+    "note_len": 182,
+    "votes": 2,
+    "acc": true
+  },
+  {
+    "sid": 11869500,
+    "lyric": "Hedi Slimane jeans (Let’s go), we let that K ring (Che, let’s go, let’s go)",
+    "score": 60,
+    "note_len": 666,
+    "votes": 1,
+    "acc": false
+  },
+  {
+    "sid": 9102326,
+    "lyric": "Audemars, bust the face, huh",
+    "score": 60,
+    "note_len": 300,
+    "votes": 0,
+    "acc": true
+  },
+  {
+    "sid": 9718234,
+    "lyric": "She ain’t have no tattoos, now she got a tramp stamp, huh, with my name on it, y",
+    "score": 60,
+    "note_len": 170,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 10613496,
+    "lyric": "Balenciaga boots, I ain’t never laced up no Timbs (Yeah)",
+    "score": 60,
+    "note_len": 157,
+    "votes": 0,
+    "acc": true
+  },
+  {
+    "sid": 10185060,
+    "lyric": "Huh, I think I’m charged up, I just popped a Tesla /  Nigga, get your bars up, s",
+    "score": 60,
+    "note_len": 213,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "VVs on my ho so cold, she say she anemic",
+    "score": 60,
+    "note_len": 219,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 10721755,
+    "lyric": "I just copped an AP, won’t catch me with Franck Muller",
+    "score": 60,
+    "note_len": 210,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 8184263,
+    "lyric": "My bitch freaky, she go both ways, but she not no trans’",
+    "score": 60,
+    "note_len": 686,
+    "votes": 40,
+    "acc": false
+  },
+  {
+    "sid": 8416251,
+    "lyric": "She like, “Ain’t you Ken Carson? Ain’t you X?” Hell yeah, that’s him",
+    "score": 59,
+    "note_len": 358,
+    "votes": 28,
+    "acc": false
+  },
+  {
+    "sid": 9615170,
+    "lyric": "This bitch a succubus, she suck me, yeah /  Yeah-ah, yeah",
+    "score": 57,
+    "note_len": 291,
+    "votes": 55,
+    "acc": false
+  },
+  {
+    "sid": 11716694,
+    "lyric": "And I’m fly as hell, yeah, bitch, I’m hawkin’",
+    "score": 57,
+    "note_len": 1121,
+    "votes": -5,
+    "acc": false
+  },
+  {
+    "sid": 8788236,
+    "lyric": "I’m in New York, and I know that these niggas ain’t shooting shit like Julius Ra",
+    "score": 57,
+    "note_len": 304,
+    "votes": 25,
+    "acc": false
+  },
+  {
+    "sid": 9800185,
+    "lyric": "I’m in London, I just left Harrods and Selfridges",
+    "score": 56,
+    "note_len": 86,
+    "votes": 13,
+    "acc": true
+  },
+  {
+    "sid": 9102326,
+    "lyric": "All black like it’s Kray",
+    "score": 56,
+    "note_len": 261,
+    "votes": 53,
+    "acc": false
+  },
+  {
+    "sid": 8415425,
+    "lyric": "All my diamonds came from Africa, but my bitch from Berlin",
+    "score": 56,
+    "note_len": 69,
+    "votes": 12,
+    "acc": true
+  },
+  {
+    "sid": 10232328,
+    "lyric": "I’m in New York, more than Sheck Wes, lil’ bitch, you know the scouts",
+    "score": 56,
+    "note_len": 379,
+    "votes": 22,
+    "acc": false
+  },
+  {
+    "sid": 9185284,
+    "lyric": "I made a hunnid K in a hunnid ways",
+    "score": 55,
+    "note_len": 63,
+    "votes": 111,
+    "acc": false
+  },
+  {
+    "sid": 9615211,
+    "lyric": "They treat my swag just like a door the way these niggas knock it",
+    "score": 55,
+    "note_len": 508,
+    "votes": -9,
+    "acc": false
+  },
+  {
+    "sid": 8748040,
+    "lyric": "I’m four pockets full, but I’m not Lil Baby",
+    "score": 54,
+    "note_len": 187,
+    "votes": 48,
+    "acc": false
+  },
+  {
+    "sid": 9377314,
+    "lyric": "X with the X, yeah, I threw that back",
+    "score": 53,
+    "note_len": 75,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 9615211,
+    "lyric": "When you at the top, ain’t nobody there, it get real, real lonely",
+    "score": 53,
+    "note_len": 338,
+    "votes": 17,
+    "acc": false
+  },
+  {
+    "sid": 8415425,
+    "lyric": "I done spent a ten and bought your bitch Givenchy moccasins",
+    "score": 53,
+    "note_len": 84,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 10140268,
+    "lyric": "My heart, I never be, I never see, I never know /  My heart, I never be, I never",
+    "score": 53,
+    "note_len": 71,
+    "votes": 6,
+    "acc": true
+  },
+  {
+    "sid": 9244743,
+    "lyric": "This bitch a groupie, yeah, she keep askin’, “Where Playboi Carti?”",
+    "score": 51,
+    "note_len": 148,
+    "votes": 82,
+    "acc": false
+  },
+  {
+    "sid": 9185284,
+    "lyric": "Keep it a hunnid",
+    "score": 50,
+    "note_len": 384,
+    "votes": 50,
+    "acc": false
+  },
+  {
+    "sid": 8922722,
+    "lyric": "All these hoes some eaters, huh, huh, they be eatin’",
+    "score": 50,
+    "note_len": 408,
+    "votes": 11,
+    "acc": false
+  },
+  {
+    "sid": 8416251,
+    "lyric": "I got rich before I turned 23, like LeBron James",
+    "score": 50,
+    "note_len": 108,
+    "votes": 40,
+    "acc": false
+  },
+  {
+    "sid": 9718234,
+    "lyric": "My niggas push up all black, yeah, like Darth Vader (Huh, huh-huh)",
+    "score": 50,
+    "note_len": 94,
+    "votes": 0,
+    "acc": true
+  },
+  {
+    "sid": 11392573,
+    "lyric": "That AR one-five gon’ do somethin’",
+    "score": 50,
+    "note_len": 88,
+    "votes": 1,
+    "acc": true
+  },
+  {
+    "sid": 9355783,
+    "lyric": "I’m thinkin’ ‘bout the bitches, thinkin’ ’bout how tall they be /  I’m fuckin’ w",
+    "score": 50,
+    "note_len": 812,
+    "votes": 21,
+    "acc": false
+  },
+  {
+    "sid": 10140268,
+    "lyric": "Yeah, I’m done skippin’ classes with you for the drugs (ok is the hardest, I swe",
+    "score": 50,
+    "note_len": 365,
+    "votes": 11,
+    "acc": false
+  }
+]
+;
+
+let minScore = 0;
+
+function clean(s) {
+  return s
+    .toLowerCase()
+    .replace(/\n/g, ' / ')
+    .replace(/\([^)]*\)/g, '')  // remove adlibs
+    .replace(/[,."'!?]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function render() {
+  const filtered = bars.filter(b => b.score >= minScore);
+  document.getElementById('count').textContent = `showing ${filtered.length} bars`;
+  
+  document.getElementById('bars').innerHTML = filtered.map(bar => {
+    const tier = bar.score >= 150 ? 'top' : bar.score >= 120 ? 'great' : bar.score >= 100 ? 'good' : '';
+    const scoreClass = bar.score >= 120 ? 'high' : '';
+    return `
+      <div class="bar ${tier}">
+        <div class="lyric">${clean(bar.lyric)}</div>
+        <div class="meta">
+          <span class="score ${scoreClass}">${bar.score} pts</span>
+          ${bar.votes}v · ${bar.note_len} char note
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.querySelectorAll('.filters button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    minScore = parseInt(btn.dataset.min);
+    render();
+  };
+});
+
+render();
+  </script>
+</body>
+</html>
