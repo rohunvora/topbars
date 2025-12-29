@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Rate Bars</title>
+  <style>
+    body { font-family: monospace; max-width: 900px; margin: 0 auto; padding: 20px; }
+    .bar { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #eee; }
+    .bar:hover { background: #f5f5f5; }
+    .votes { min-width: 30px; color: #999; }
+    .acc { color: green; font-weight: bold; }
+    .lyric { flex: 1; }
+    .like-btn { cursor: pointer; padding: 4px 12px; border: 1px solid #ccc; background: #fff; border-radius: 4px; }
+    .like-btn.liked { background: #4CAF50; color: white; border-color: #4CAF50; }
+    #output { margin-top: 30px; padding: 15px; background: #ffffcc; white-space: pre-wrap; font-size: 12px; }
+    h2 { margin-top: 40px; }
+    .stats { background: #eee; padding: 10px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Rate Bars - Click bars you like</h1>
+  <div class="stats">
+    <span id="likedCount">0</span> / <span id="totalCount">0</span> liked
+  </div>
+  <div id="bars"></div>
+  
+  <h2>Liked Bars (copy this)</h2>
+  <div id="output">Click some bars above...</div>
+
+  <script>
+const bars = 
+[
+  {
+    "sid": 9615170,
+    "l": "These niggas be talking like Phineas, but I’m like Ferb, I don’t say s",
+    "v": 82,
+    "acc": true,
+    "iq": 49965
+  },
+  {
+    "sid": 9615170,
+    "l": "This bitch a succubus, she suck me, yeah\n Yeah-ah, yeah",
+    "v": 55,
+    "acc": false,
+    "iq": 275
+  },
+  {
+    "sid": 9615170,
+    "l": "My emo bitch like to slit her wrists, yeah, she’s so dark",
+    "v": 45,
+    "acc": false,
+    "iq": 548
+  },
+  {
+    "sid": 9615170,
+    "l": "How you let your ex drive you crazy, and he ain’t got no car?\n Yeah-ah",
+    "v": 42,
+    "acc": false,
+    "iq": 2240
+  },
+  {
+    "sid": 9615170,
+    "l": "Make your own decisions, I’m not phased\n Just like Lil Uzi, baby girl,",
+    "v": 42,
+    "acc": true,
+    "iq": 19728
+  },
+  {
+    "sid": 11294406,
+    "l": "We can do it, I know you not like us",
+    "v": 42,
+    "acc": false,
+    "iq": 215
+  },
+  {
+    "sid": 9770611,
+    "l": "Ye-yeah, they envy me\n Ye-ye-yeah, they—\n I was in a GLE-G— yuh\n Coupl",
+    "v": 39,
+    "acc": false,
+    "iq": 462
+  },
+  {
+    "sid": 9615170,
+    "l": "Bitch, I’m not Tom, but I need my space, my space, yeah",
+    "v": 39,
+    "acc": true,
+    "iq": 49965
+  },
+  {
+    "sid": 9615170,
+    "l": "Yeah-ah, yeah-ah\n Yeah-ah, yeah, yeah, uh\n Yeah-ah",
+    "v": 36,
+    "acc": false,
+    "iq": 572
+  },
+  {
+    "sid": 10286343,
+    "l": "I told Lil’ Nett, “We gon’ spin back” (Yeah, beep)",
+    "v": 34,
+    "acc": true,
+    "iq": 188
+  },
+  {
+    "sid": 9615170,
+    "l": "If there’s a Heaven, this bitch going to Hell",
+    "v": 33,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 10923108,
+    "l": "I got stripes on my chest like a ref, jump out, yeah\n I got stripes, I",
+    "v": 32,
+    "acc": false,
+    "iq": 2168
+  },
+  {
+    "sid": 8722677,
+    "l": "(This is an emergency)",
+    "v": 30,
+    "acc": false,
+    "iq": 77
+  },
+  {
+    "sid": 10286343,
+    "l": "I know what you did last summer (You did)",
+    "v": 29,
+    "acc": true,
+    "iq": 757
+  },
+  {
+    "sid": 9950523,
+    "l": "I know they datin’, that’s so poor",
+    "v": 28,
+    "acc": false,
+    "iq": 175
+  },
+  {
+    "sid": 9950523,
+    "l": "I see you, flexin’ (Flex)\n I see you (Yeah), fle-flexin’ (Flex)\n I see",
+    "v": 28,
+    "acc": false,
+    "iq": 3474
+  },
+  {
+    "sid": 10052087,
+    "l": "Spinning out on what to say or what to do\n Finding reasons for my cons",
+    "v": 28,
+    "acc": false,
+    "iq": 283
+  },
+  {
+    "sid": 9615170,
+    "l": "(Wake up—)",
+    "v": 23,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10698743,
+    "l": "When I close my eyes\n You replace him\n Wearin’ no disguise\n You erase ",
+    "v": 22,
+    "acc": true,
+    "iq": 166866
+  },
+  {
+    "sid": 8455618,
+    "l": "Damn, they need to free Young Thug, that shit is not okay\n These folks",
+    "v": 22,
+    "acc": false,
+    "iq": 182
+  },
+  {
+    "sid": 9950523,
+    "l": "I rock so much Rehab on my ass, damn, my bad",
+    "v": 21,
+    "acc": false,
+    "iq": 533
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause some days I’m afraid to fall down\n But I understand the coming ",
+    "v": 21,
+    "acc": false,
+    "iq": 283
+  },
+  {
+    "sid": 9615170,
+    "l": "She was moving too fast, I had to put that bitch in park",
+    "v": 21,
+    "acc": false,
+    "iq": 275
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause days blend to one when I’m on the right beaches\n And the walls ",
+    "v": 20,
+    "acc": false,
+    "iq": 11779
+  },
+  {
+    "sid": 8722677,
+    "l": "And she off them fenty Percs\n Throw that ass back, baby,",
+    "v": 20,
+    "acc": false,
+    "iq": 563
+  },
+  {
+    "sid": 8455618,
+    "l": "Where the fuck my flip phone at? This my throwaway",
+    "v": 20,
+    "acc": false,
+    "iq": 3777
+  },
+  {
+    "sid": 9770611,
+    "l": "Ball like the MVP\n Ball like the MVP",
+    "v": 19,
+    "acc": false,
+    "iq": 177
+  },
+  {
+    "sid": 9615170,
+    "l": "This bitch a succubus, she suck me, yeah\n Yeah-ah, yeah",
+    "v": 19,
+    "acc": false,
+    "iq": 548
+  },
+  {
+    "sid": 7991470,
+    "l": "She say I sing like The Weeknd",
+    "v": 19,
+    "acc": false,
+    "iq": 153
+  },
+  {
+    "sid": 10052087,
+    "l": "Don’t wait for the tide just to dip both your feet in",
+    "v": 18,
+    "acc": false,
+    "iq": 245
+  },
+  {
+    "sid": 10286343,
+    "l": "(​ok is the hardest, I swear to God)",
+    "v": 18,
+    "acc": false,
+    "iq": 38585
+  },
+  {
+    "sid": 10483960,
+    "l": "Nigga dick ridin’ ’cause he mad",
+    "v": 17,
+    "acc": false,
+    "iq": 224
+  },
+  {
+    "sid": 10052087,
+    "l": "Don’t wait for the tide just to dip both your feet in",
+    "v": 17,
+    "acc": false,
+    "iq": 325
+  },
+  {
+    "sid": 10052087,
+    "l": "Giving me a peace of mind\n I’m sure now, I’m sure",
+    "v": 16,
+    "acc": false,
+    "iq": 283
+  },
+  {
+    "sid": 9615170,
+    "l": "Don’t be afraid, if you wanna leave, don’t let me get in your way\n If ",
+    "v": 16,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 10286343,
+    "l": "Oh, you think you know my life? Told you too many times (Yeah)\n Too-to",
+    "v": 16,
+    "acc": false,
+    "iq": 2168
+  },
+  {
+    "sid": 11190835,
+    "l": "Creeper’s on the block, they only come out at night",
+    "v": 15,
+    "acc": false,
+    "iq": 4832
+  },
+  {
+    "sid": 11190835,
+    "l": "Slidin’ with hood Justin Bieb’, you don’t know me",
+    "v": 15,
+    "acc": false,
+    "iq": 6074
+  },
+  {
+    "sid": 8455618,
+    "l": "I’m in Goyard with my bitch, she pick some shit, I’m like ”That’s all?",
+    "v": 15,
+    "acc": false,
+    "iq": 267
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause I’m sure now, I’m sure",
+    "v": 14,
+    "acc": false,
+    "iq": 134
+  },
+  {
+    "sid": 10052087,
+    "l": "And the walls painted white, they tell me all the secrets",
+    "v": 13,
+    "acc": false,
+    "iq": 3857
+  },
+  {
+    "sid": 10698743,
+    "l": "He is stable, you are deep",
+    "v": 13,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10199307,
+    "l": "Throw your Dracos in the air",
+    "v": 13,
+    "acc": false,
+    "iq": 883
+  },
+  {
+    "sid": 8455618,
+    "l": "I’m off the shrooms, I’m off the codeine, woah, woah, woah",
+    "v": 13,
+    "acc": false,
+    "iq": 623
+  },
+  {
+    "sid": 8722677,
+    "l": "I said I won’t make it work\n But you could make it work, girl",
+    "v": 12,
+    "acc": true,
+    "iq": 50518
+  },
+  {
+    "sid": 9950523,
+    "l": "All she know is throw it, yeah",
+    "v": 10,
+    "acc": false,
+    "iq": 140
+  },
+  {
+    "sid": 9615170,
+    "l": "Every time I switch time frames, I text a ho like, “I’m in your city”\n",
+    "v": 10,
+    "acc": false,
+    "iq": 2240
+  },
+  {
+    "sid": 9770611,
+    "l": "“Boy, you went so fed,” yuh",
+    "v": 9,
+    "acc": false,
+    "iq": 247
+  },
+  {
+    "sid": 11004555,
+    "l": "I’m not a tall guy, but my money 6'2\"",
+    "v": 9,
+    "acc": true,
+    "iq": 3376
+  },
+  {
+    "sid": 9770615,
+    "l": "Just one call (Brrt), I’ll knock you off (Slime)",
+    "v": 9,
+    "acc": false,
+    "iq": 209
+  },
+  {
+    "sid": 8455618,
+    "l": "(Neilaworld)",
+    "v": 9,
+    "acc": false,
+    "iq": 1438
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause days blend to one when I’m on the right beaches",
+    "v": 8,
+    "acc": false,
+    "iq": 123
+  },
+  {
+    "sid": 9770611,
+    "l": "Ball like the MVP\n Ball like the MVP\n Ye-yeah, they envy me\n Ye-ye-yea",
+    "v": 8,
+    "acc": false,
+    "iq": 136
+  },
+  {
+    "sid": 10923108,
+    "l": "(Ha-ha-ha-ha-ha)",
+    "v": 8,
+    "acc": false,
+    "iq": 46969
+  },
+  {
+    "sid": 9615170,
+    "l": "She said “Boy, don’t start with me,” but I already started",
+    "v": 8,
+    "acc": false,
+    "iq": 182
+  },
+  {
+    "sid": 10286343,
+    "l": "Oh, you think you know my life? Told you too many times (Yeah)\n Too-to",
+    "v": 8,
+    "acc": false,
+    "iq": 3413
+  },
+  {
+    "sid": 10286343,
+    "l": "Six-pack",
+    "v": 8,
+    "acc": false,
+    "iq": 511
+  },
+  {
+    "sid": 11294406,
+    "l": "Yeah, bitch, you won’t know if you never try to go, yeah\n Bitch, you w",
+    "v": 8,
+    "acc": false,
+    "iq": 7619
+  },
+  {
+    "sid": 10199307,
+    "l": "Fuck the tires up",
+    "v": 8,
+    "acc": false,
+    "iq": 167
+  },
+  {
+    "sid": 8455618,
+    "l": "Fuck the police, fuck the judge, fuck the DEA",
+    "v": 8,
+    "acc": false,
+    "iq": 1713
+  },
+  {
+    "sid": 8455618,
+    "l": "I ain’t pick up the phone, ‘cause I was too busy ballin’",
+    "v": 8,
+    "acc": false,
+    "iq": 313
+  },
+  {
+    "sid": 11381907,
+    "l": "I got my fist wet, huh (What?)\n I got my wrists wet",
+    "v": 7,
+    "acc": false,
+    "iq": 151
+  },
+  {
+    "sid": 9770615,
+    "l": "They like, “Congratulations, bro, you on yo’ shit” (We gon’ be okay)",
+    "v": 7,
+    "acc": false,
+    "iq": 378
+  },
+  {
+    "sid": 9615170,
+    "l": "I’m off the shits right now, these drugs got me talking sideways",
+    "v": 7,
+    "acc": false,
+    "iq": 79
+  },
+  {
+    "sid": 9615170,
+    "l": "I can’t control myself, I’m doing the opposite of what my mind say",
+    "v": 7,
+    "acc": false,
+    "iq": 153
+  },
+  {
+    "sid": 9615170,
+    "l": "Every time I pop out, it’s a party, yeah, it’s lit",
+    "v": 7,
+    "acc": false,
+    "iq": 275
+  },
+  {
+    "sid": 11378100,
+    "l": "[Chorus]\n I made some plans for us\n Wait ’til you land, go nuts\n Then ",
+    "v": 7,
+    "acc": false,
+    "iq": 519
+  },
+  {
+    "sid": 7991470,
+    "l": "I don’t fuck with white hoes, probably think I’m racist",
+    "v": 7,
+    "acc": false,
+    "iq": 23
+  },
+  {
+    "sid": 10199307,
+    "l": "Hahahahaha\n Draco, hardest out, no doubt\n Throw your Dracos in the air",
+    "v": 7,
+    "acc": false,
+    "iq": 146
+  },
+  {
+    "sid": 10199307,
+    "l": "With slime, pushin’ in a striker, SRT, this a new one",
+    "v": 7,
+    "acc": false,
+    "iq": 2121
+  },
+  {
+    "sid": 8455618,
+    "l": "Yeah, we all DTF, yeah, we all down to fuck some hoes",
+    "v": 7,
+    "acc": false,
+    "iq": 3385
+  },
+  {
+    "sid": 8455618,
+    "l": "I’m in New York shoppin’, you can’t catch me at the mall",
+    "v": 7,
+    "acc": false,
+    "iq": 619
+  },
+  {
+    "sid": 9770611,
+    "l": "Checks all in my head\n Checks all in my head\n Checks all-checks all in",
+    "v": 6,
+    "acc": false,
+    "iq": 3474
+  },
+  {
+    "sid": 10923108,
+    "l": "I’m gon’ be the best, I won’t end up like the rest, yeah",
+    "v": 6,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 9770615,
+    "l": "I poured up hella mud because I want to, bitch (’Cause I want to, bitc",
+    "v": 6,
+    "acc": false,
+    "iq": 209
+  },
+  {
+    "sid": 9615170,
+    "l": "I can’t find the exit, huh, huh, I’m on the highway",
+    "v": 6,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 11378100,
+    "l": "My old ho watchin’, yeah (Slatt)",
+    "v": 6,
+    "acc": false,
+    "iq": 387
+  },
+  {
+    "sid": 10286343,
+    "l": "I got three damn lines (Beep), but I won’t answer my line (I won’t ans",
+    "v": 6,
+    "acc": false,
+    "iq": 3413
+  },
+  {
+    "sid": 8455618,
+    "l": "I used to go for some Cognac",
+    "v": 6,
+    "acc": false,
+    "iq": 623
+  },
+  {
+    "sid": 9950523,
+    "l": "Percs gon’ have me dead in the mornin’",
+    "v": 5,
+    "acc": false,
+    "iq": 259
+  },
+  {
+    "sid": 9950523,
+    "l": "Got some racks, just throw it, yeah",
+    "v": 5,
+    "acc": false,
+    "iq": 199
+  },
+  {
+    "sid": 11004555,
+    "l": "I stay with my mans, feel like Groot",
+    "v": 5,
+    "acc": false,
+    "iq": 160
+  },
+  {
+    "sid": 8722677,
+    "l": "Got your bitch mouth wet from that dick, I already know, ah",
+    "v": 5,
+    "acc": false,
+    "iq": 16
+  },
+  {
+    "sid": 10923108,
+    "l": "(Draco)",
+    "v": 5,
+    "acc": false,
+    "iq": 4534
+  },
+  {
+    "sid": 9770615,
+    "l": "Suited up, I ain’t come this far to be a bust (Yeah), nigga",
+    "v": 5,
+    "acc": false,
+    "iq": 209
+  },
+  {
+    "sid": 9615170,
+    "l": "How you let your ex drive you crazy, and he ain’t got no car?\n Yeah-ah",
+    "v": 5,
+    "acc": false,
+    "iq": 116
+  },
+  {
+    "sid": 9615170,
+    "l": "And I can fully understand if you can’t deal with it",
+    "v": 5,
+    "acc": false,
+    "iq": 474
+  },
+  {
+    "sid": 9615170,
+    "l": "But I just found a bitch that’ll let me help her, yeah, my way\n My way",
+    "v": 5,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 10286343,
+    "l": "New switch, then add another (Boop-boop-boop-boop-boop-boop)",
+    "v": 5,
+    "acc": false,
+    "iq": 3413
+  },
+  {
+    "sid": 10286343,
+    "l": "(Beep, beep, beep, beep, beep, beep, beep)",
+    "v": 5,
+    "acc": false,
+    "iq": 46969
+  },
+  {
+    "sid": 9766504,
+    "l": "Lil’ nigga",
+    "v": 5,
+    "acc": false,
+    "iq": 267
+  },
+  {
+    "sid": 8455618,
+    "l": "I trap on my birthday and holidays, this shit don’t stop",
+    "v": 5,
+    "acc": false,
+    "iq": 141
+  },
+  {
+    "sid": 11381907,
+    "l": "Yeah, I wish you can see all this shit, slatt",
+    "v": 4,
+    "acc": false,
+    "iq": 2168
+  },
+  {
+    "sid": 9770611,
+    "l": "Sli-slime went brazy with that MAC",
+    "v": 4,
+    "acc": false,
+    "iq": 13
+  },
+  {
+    "sid": 9770611,
+    "l": "Money up, can’t go back, yeah",
+    "v": 4,
+    "acc": false,
+    "iq": 164
+  },
+  {
+    "sid": 11467117,
+    "l": "Baby, I’m high, high, high, laughin’ at these niggas like, “Ha, ha, ha",
+    "v": 4,
+    "acc": true,
+    "iq": 46969
+  },
+  {
+    "sid": 9770615,
+    "l": "Bitch, I took the SRT OT, now this a cool ’Cat",
+    "v": 4,
+    "acc": false,
+    "iq": 166
+  },
+  {
+    "sid": 9615170,
+    "l": "If there’s a Heaven, this bitch goin’ to Hell",
+    "v": 4,
+    "acc": false,
+    "iq": 158
+  },
+  {
+    "sid": 9615170,
+    "l": "Every time she pop out, yeah, yeah, they know that’s my bitch",
+    "v": 4,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 10698743,
+    "l": "It’s only a question\n If somebody brings it up\n So I’m pushin’ it down",
+    "v": 4,
+    "acc": false,
+    "iq": 153
+  },
+  {
+    "sid": 10698743,
+    "l": "I wanna know peace again\n Wanna sing a different song\n I want you to n",
+    "v": 4,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10286343,
+    "l": "Two freaky hoes, ki-kissin’ at the same time",
+    "v": 4,
+    "acc": false,
+    "iq": 479
+  },
+  {
+    "sid": 10304303,
+    "l": "Bad ho, grip on her butt (Yeah)",
+    "v": 4,
+    "acc": false,
+    "iq": 123
+  },
+  {
+    "sid": 11294406,
+    "l": "This bitch brain was so damn good, can’t put my shoes on",
+    "v": 4,
+    "acc": false,
+    "iq": 387
+  },
+  {
+    "sid": 10199307,
+    "l": "Chapo",
+    "v": 4,
+    "acc": false,
+    "iq": 146
+  },
+  {
+    "sid": 9766504,
+    "l": "P",
+    "v": 4,
+    "acc": false,
+    "iq": 3836
+  },
+  {
+    "sid": 9950523,
+    "l": "Pourin’ up tec’, give a fuck, I’m snorin’",
+    "v": 3,
+    "acc": false,
+    "iq": 259
+  },
+  {
+    "sid": 11888196,
+    "l": "Thirteen bands on my ears, it’s Sevan",
+    "v": 3,
+    "acc": false,
+    "iq": 616
+  },
+  {
+    "sid": 11381907,
+    "l": "Your bitch all in my hair, uh, uh",
+    "v": 3,
+    "acc": false,
+    "iq": 3474
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause I’m sure now, I’m sure",
+    "v": 3,
+    "acc": false,
+    "iq": 246
+  },
+  {
+    "sid": 9770611,
+    "l": "And these niggas tryna steal the swag",
+    "v": 3,
+    "acc": false,
+    "iq": 186
+  },
+  {
+    "sid": 11004555,
+    "l": "This ain’t Fall Guys, I can’t fall on you",
+    "v": 3,
+    "acc": false,
+    "iq": 139
+  },
+  {
+    "sid": 8722677,
+    "l": "Yeah, give a fuck of what they say, so I’m clutching on my pole",
+    "v": 3,
+    "acc": false,
+    "iq": 757
+  },
+  {
+    "sid": 10923108,
+    "l": "Brand-new MAC, brand-new that, brand-new, uh, brand-new TEC\n Brand-new",
+    "v": 3,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 9770615,
+    "l": "Bitch, I took the SRT OT, now this a cool ’Cat",
+    "v": 3,
+    "acc": false,
+    "iq": 1166
+  },
+  {
+    "sid": 9615170,
+    "l": "She said, “Boy, don’t start with me,” but I already started",
+    "v": 3,
+    "acc": false,
+    "iq": 572
+  },
+  {
+    "sid": 9615170,
+    "l": "I’m off the lean, she off the Casamigos and she ’bout to get it",
+    "v": 3,
+    "acc": false,
+    "iq": 117336
+  },
+  {
+    "sid": 11378100,
+    "l": "Yeah, tell me what you need and I’ll break the bank",
+    "v": 3,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 10698743,
+    "l": "I know just how to get what I need",
+    "v": 3,
+    "acc": false,
+    "iq": 252
+  },
+  {
+    "sid": 10286343,
+    "l": "Some bands for my mother",
+    "v": 3,
+    "acc": false,
+    "iq": 45
+  },
+  {
+    "sid": 10286343,
+    "l": "Last nigga was a lame, yeah, I go dumber",
+    "v": 3,
+    "acc": false,
+    "iq": 179
+  },
+  {
+    "sid": 10286343,
+    "l": "I got three damn lines (Beep), but I won’t answer my line (I won’t ans",
+    "v": 3,
+    "acc": false,
+    "iq": 320
+  },
+  {
+    "sid": 10199307,
+    "l": "I’m with BL, got these big-ass Glocks, you ain’t gettin’ off on nothin",
+    "v": 3,
+    "acc": false,
+    "iq": 545
+  },
+  {
+    "sid": 10729409,
+    "l": "If another rapper OD, they might try to charge me",
+    "v": 3,
+    "acc": false,
+    "iq": 179
+  },
+  {
+    "sid": 8455618,
+    "l": "I gotta relieve some stress, it’s cold outside, I got VETEMENTS on my ",
+    "v": 3,
+    "acc": false,
+    "iq": 1438
+  },
+  {
+    "sid": 11888196,
+    "l": "I’m cross-faded and I’m gone, I feel like every bitch tryna fuck",
+    "v": 2,
+    "acc": false,
+    "iq": 4431
+  },
+  {
+    "sid": 11888196,
+    "l": "Hella baguettes on me, got a big body bag",
+    "v": 2,
+    "acc": false,
+    "iq": 462
+  },
+  {
+    "sid": 11888196,
+    "l": "Thirteen bands on my ears, it’s Sevan",
+    "v": 2,
+    "acc": false,
+    "iq": 399
+  },
+  {
+    "sid": 11888196,
+    "l": "I’m bleedin’ from my neck, I just got some new princess cuts, huh",
+    "v": 2,
+    "acc": false,
+    "iq": 399
+  },
+  {
+    "sid": 11381907,
+    "l": "I’m in it, yeah\n I’m in it, bitch, and I’m spinnin’, uh (Yeah, uh; ok ",
+    "v": 2,
+    "acc": false,
+    "iq": 756
+  },
+  {
+    "sid": 11381907,
+    "l": "Uh, my left hand’s full, uh (Yeah)",
+    "v": 2,
+    "acc": false,
+    "iq": 3474
+  },
+  {
+    "sid": 9770611,
+    "l": "[Chorus]",
+    "v": 2,
+    "acc": false,
+    "iq": 3119
+  },
+  {
+    "sid": 9770611,
+    "l": "Perc’ 10, I took two",
+    "v": 2,
+    "acc": false,
+    "iq": 109
+  },
+  {
+    "sid": 11004555,
+    "l": "I don’t ask no fuckin’ questions, I just shoot",
+    "v": 2,
+    "acc": false,
+    "iq": 29
+  },
+  {
+    "sid": 11467117,
+    "l": "Big Backwoods, I don’t smoke cigars",
+    "v": 2,
+    "acc": true,
+    "iq": 46969
+  },
+  {
+    "sid": 11467117,
+    "l": "I’m sippin’ Tris and Quagen, mix it on some old shit",
+    "v": 2,
+    "acc": true,
+    "iq": 46969
+  },
+  {
+    "sid": 9615170,
+    "l": "[Chorus]",
+    "v": 2,
+    "acc": false,
+    "iq": 131
+  },
+  {
+    "sid": 9615170,
+    "l": "She was moving too fast, I had to put that bitch in park",
+    "v": 2,
+    "acc": false,
+    "iq": 572
+  },
+  {
+    "sid": 9615170,
+    "l": "Why your ho starin’ so hard? I’m ’bout to take off with your bitch",
+    "v": 2,
+    "acc": false,
+    "iq": 225
+  },
+  {
+    "sid": 9615170,
+    "l": "Shawty fell in love with my swag, and now she takin’ off my Rick",
+    "v": 2,
+    "acc": false,
+    "iq": 225
+  },
+  {
+    "sid": 11378100,
+    "l": "Love when you talkin’, let’s go",
+    "v": 2,
+    "acc": false,
+    "iq": 17
+  },
+  {
+    "sid": 11378100,
+    "l": "Your new hair, yeah, I love that, you know I’m not just talkin’",
+    "v": 2,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Huh, talk to me, baby, I’m on that drank",
+    "v": 2,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 10698743,
+    "l": "I’m pushin’ it down and prayin’",
+    "v": 2,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10286343,
+    "l": "Yeah, I can do it too\n Yeah, I can do it too (Boop, boop, let’s get it",
+    "v": 2,
+    "acc": false,
+    "iq": 196
+  },
+  {
+    "sid": 10286343,
+    "l": "Ye-yeah, what you want, my brother? (Slime)\n Is you good, slime?",
+    "v": 2,
+    "acc": false,
+    "iq": 179
+  },
+  {
+    "sid": 7991470,
+    "l": "Smokin’ on exotic weed, got me seein’ faces",
+    "v": 2,
+    "acc": false,
+    "iq": 182
+  },
+  {
+    "sid": 11158806,
+    "l": "Yeah, I ain’t afraid to tell a bitch I love her, but\n If she fuck anot",
+    "v": 2,
+    "acc": false,
+    "iq": 203
+  },
+  {
+    "sid": 10199307,
+    "l": "Flex Musix gon’ get shit booted",
+    "v": 2,
+    "acc": false,
+    "iq": 2831
+  },
+  {
+    "sid": 9766504,
+    "l": "Stef still pourin’ up Hi-Tech",
+    "v": 2,
+    "acc": false,
+    "iq": 6074
+  },
+  {
+    "sid": 10729409,
+    "l": "Cosa Nostra",
+    "v": 2,
+    "acc": false,
+    "iq": 123
+  },
+  {
+    "sid": 8455618,
+    "l": "I bust down that Chrome Heart watch, it’s a Rolex",
+    "v": 2,
+    "acc": false,
+    "iq": 3385
+  },
+  {
+    "sid": 9950523,
+    "l": "Pussy, we be hittin’ on toe-tags\n Yeah, toe-tags",
+    "v": 1,
+    "acc": false,
+    "iq": 259
+  },
+  {
+    "sid": 9950523,
+    "l": "I just blew it, new ‘Vette, I’m coppin’ bullshit (Bullshit)",
+    "v": 1,
+    "acc": false,
+    "iq": 2168
+  },
+  {
+    "sid": 10483960,
+    "l": "I got paper like Dunder",
+    "v": 1,
+    "acc": false,
+    "iq": 522
+  },
+  {
+    "sid": 11888196,
+    "l": "Cross-faded and I’m gone, feel like every bitch tryna fuck",
+    "v": 1,
+    "acc": false,
+    "iq": 4431
+  },
+  {
+    "sid": 11888196,
+    "l": "I’m way too fried, just threw up, I’m sick\n I’m way too high up, I tho",
+    "v": 1,
+    "acc": false,
+    "iq": 4431
+  },
+  {
+    "sid": 11888196,
+    "l": "Hella baguettes on me, got a big body bag",
+    "v": 1,
+    "acc": false,
+    "iq": 4431
+  },
+  {
+    "sid": 11888196,
+    "l": "I’m way too fried, just threw up, I’m sick\n I’m way too high up, I tho",
+    "v": 1,
+    "acc": false,
+    "iq": 462
+  },
+  {
+    "sid": 11888196,
+    "l": "I think I got an addiction to spendin’\n Cut my bank, it’s bleedin’ out",
+    "v": 1,
+    "acc": false,
+    "iq": 399
+  },
+  {
+    "sid": 11381907,
+    "l": "Pull up and I’m actin’ a fool, yeah",
+    "v": 1,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 9770611,
+    "l": "Hit slime for the missile",
+    "v": 1,
+    "acc": false,
+    "iq": 172
+  },
+  {
+    "sid": 9770611,
+    "l": "Zo-zombie moving off the flat (Flat)",
+    "v": 1,
+    "acc": false,
+    "iq": 195
+  },
+  {
+    "sid": 9770611,
+    "l": "Lil’ P",
+    "v": 1,
+    "acc": false,
+    "iq": 6074
+  },
+  {
+    "sid": 11004555,
+    "l": "He think he can guard me, put him on an island",
+    "v": 1,
+    "acc": false,
+    "iq": 160
+  },
+  {
+    "sid": 11467117,
+    "l": "I’m high as fuck right now, I’ll call you back, my plug callin’ (Uh, u",
+    "v": 1,
+    "acc": false,
+    "iq": 273
+  },
+  {
+    "sid": 11467117,
+    "l": "These Percocets fresh, not Prince (Prince)",
+    "v": 1,
+    "acc": true,
+    "iq": 46969
+  },
+  {
+    "sid": 8722677,
+    "l": "Said I’m in the club alone",
+    "v": 1,
+    "acc": false,
+    "iq": 128
+  },
+  {
+    "sid": 8722677,
+    "l": "In case they run in, I’ma blow the gun",
+    "v": 1,
+    "acc": false,
+    "iq": 105
+  },
+  {
+    "sid": 10923108,
+    "l": "I got sticks, don’t tell, yeah, fuck the clientele",
+    "v": 1,
+    "acc": false,
+    "iq": 905
+  },
+  {
+    "sid": 10923108,
+    "l": "Yeah, someone get my bail, yeah, this not show and tell, yeah",
+    "v": 1,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 11378100,
+    "l": "Give you diamonds, yeah, I give you pearls, don’t listen to what they ",
+    "v": 1,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 11378100,
+    "l": "Yeah, tell me what you need and I’ll break the bank",
+    "v": 1,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Yeah, tell me what you need and I’ll break the bank (And I’ll break th",
+    "v": 1,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Huh, talk to me, baby, I’m on that drank",
+    "v": 1,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Ok is the hardest, I swear to God",
+    "v": 1,
+    "acc": false,
+    "iq": 85
+  },
+  {
+    "sid": 10698743,
+    "l": "Softer, harder, in-between",
+    "v": 1,
+    "acc": false,
+    "iq": 4602
+  },
+  {
+    "sid": 10698743,
+    "l": "[Verse 2]",
+    "v": 1,
+    "acc": false,
+    "iq": 131
+  },
+  {
+    "sid": 10698743,
+    "l": "You know just how to get to me",
+    "v": 1,
+    "acc": false,
+    "iq": 252
+  },
+  {
+    "sid": 10698743,
+    "l": "He gives what he can\n But now I don’t know what he’s givin’ for",
+    "v": 1,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 7991470,
+    "l": "Four pockets full of cash, nigga, I’m Lil Baby",
+    "v": 1,
+    "acc": false,
+    "iq": 342
+  },
+  {
+    "sid": 11294406,
+    "l": "Rich like an NBA player, no pop-up",
+    "v": 1,
+    "acc": false,
+    "iq": 387
+  },
+  {
+    "sid": 11294406,
+    "l": "(We gon’ be okay)",
+    "v": 1,
+    "acc": false,
+    "iq": 234
+  },
+  {
+    "sid": 11294406,
+    "l": "(We gon’ be okay)",
+    "v": 1,
+    "acc": false,
+    "iq": 234
+  },
+  {
+    "sid": 11294406,
+    "l": "(ok is the hardest, I swear to God)",
+    "v": 1,
+    "acc": false,
+    "iq": 234
+  },
+  {
+    "sid": 11294406,
+    "l": "Lean ’bout to put me in my lean zone",
+    "v": 1,
+    "acc": false,
+    "iq": 170
+  },
+  {
+    "sid": 10199307,
+    "l": "Told Von",
+    "v": 1,
+    "acc": false,
+    "iq": 9
+  },
+  {
+    "sid": 10199307,
+    "l": "I got hella sticks on me, Rambo",
+    "v": 1,
+    "acc": false,
+    "iq": 14
+  },
+  {
+    "sid": 10199307,
+    "l": "With slime, pushin’ in a striker, SRT, this a new one",
+    "v": 1,
+    "acc": false,
+    "iq": 145
+  },
+  {
+    "sid": 9766504,
+    "l": "(Ok is the hardest, I swear to God)",
+    "v": 1,
+    "acc": false,
+    "iq": 234
+  },
+  {
+    "sid": 9950523,
+    "l": "I’ma cop Balenci’, couple bags ’cause we fucked it up",
+    "v": 0,
+    "acc": false,
+    "iq": 7
+  },
+  {
+    "sid": 9950523,
+    "l": "Got some drank and pour it up",
+    "v": 0,
+    "acc": false,
+    "iq": 623
+  },
+  {
+    "sid": 11172292,
+    "l": "Fell in love with the pack, man, it is what it is, yeah\n Fell in love ",
+    "v": 0,
+    "acc": false,
+    "iq": 46969
+  },
+  {
+    "sid": 11172292,
+    "l": "(Swi-Swishrr beats)",
+    "v": 0,
+    "acc": false,
+    "iq": 46969
+  },
+  {
+    "sid": 11172292,
+    "l": "Count a whole lotta bodies, think it’s Redrum (Redrum), yeah",
+    "v": 0,
+    "acc": false,
+    "iq": 46969
+  },
+  {
+    "sid": 10483960,
+    "l": "Punch a pussy boy in his chest, make him cough up a lung or somethin’",
+    "v": 0,
+    "acc": false,
+    "iq": 105
+  },
+  {
+    "sid": 11888196,
+    "l": "(And the winner is PlaqueBoyMax)",
+    "v": 0,
+    "acc": false,
+    "iq": 12734
+  },
+  {
+    "sid": 11888196,
+    "l": "I need to cure my addiction to spendin’\n Cut off my bank, it’s bleedin",
+    "v": 0,
+    "acc": false,
+    "iq": 399
+  },
+  {
+    "sid": 11381907,
+    "l": "Oh, you think you lit? Sit him down in a chair (Sit him down)",
+    "v": 0,
+    "acc": false,
+    "iq": 27
+  },
+  {
+    "sid": 10052087,
+    "l": "’Cause I’m sure now, I’m sure",
+    "v": 0,
+    "acc": false,
+    "iq": 3228
+  },
+  {
+    "sid": 9770611,
+    "l": "Brr, brr",
+    "v": 0,
+    "acc": false,
+    "iq": 206
+  },
+  {
+    "sid": 9770611,
+    "l": "Three hundred black out",
+    "v": 0,
+    "acc": false,
+    "iq": 375
+  },
+  {
+    "sid": 9770611,
+    "l": "Jag’",
+    "v": 0,
+    "acc": false,
+    "iq": 266
+  },
+  {
+    "sid": 9770611,
+    "l": "Cocktail party, gon’ bring that bag out",
+    "v": 0,
+    "acc": false,
+    "iq": 266
+  },
+  {
+    "sid": 9770611,
+    "l": ".556",
+    "v": 0,
+    "acc": false,
+    "iq": 559
+  },
+  {
+    "sid": 11004555,
+    "l": "Huh, how much in your chopper? I think a deuce, huh",
+    "v": 0,
+    "acc": false,
+    "iq": 141
+  },
+  {
+    "sid": 11004555,
+    "l": "I’m so high, bitch, I don’t know what I’m gon’ do\n Feel like I could f",
+    "v": 0,
+    "acc": false,
+    "iq": 29
+  },
+  {
+    "sid": 11004555,
+    "l": "When I’m on these drugs, can I count on you?\n When I fall in love, can",
+    "v": 0,
+    "acc": false,
+    "iq": 29
+  },
+  {
+    "sid": 11004555,
+    "l": "What you lookin’ at? Girl, it’s me and you\n What you thinkin’ ’bout? G",
+    "v": 0,
+    "acc": false,
+    "iq": 29
+  },
+  {
+    "sid": 11004555,
+    "l": "Get that pack, man, send it through",
+    "v": 0,
+    "acc": false,
+    "iq": 29
+  },
+  {
+    "sid": 8722677,
+    "l": "Said I’m in the club alone",
+    "v": 0,
+    "acc": false,
+    "iq": 186
+  },
+  {
+    "sid": 8722677,
+    "l": "She know how to make it work, girl",
+    "v": 0,
+    "acc": false,
+    "iq": 128
+  },
+  {
+    "sid": 8722677,
+    "l": "Got a opp dropped, clutching on that ho",
+    "v": 0,
+    "acc": false,
+    "iq": 128
+  },
+  {
+    "sid": 8722677,
+    "l": "Me and Zuro on the run",
+    "v": 0,
+    "acc": false,
+    "iq": 2963
+  },
+  {
+    "sid": 8722677,
+    "l": "Hide my gun up in your skirt",
+    "v": 0,
+    "acc": false,
+    "iq": 2963
+  },
+  {
+    "sid": 10923108,
+    "l": "Brand-new MAC, brand-new that, brand-new, uh, brand-new TEC\n Brand-new",
+    "v": 0,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 10923108,
+    "l": "I’m gon’ be the best, I won’t end up like the rest, yeah",
+    "v": 0,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 9770615,
+    "l": "Who do I bust? Like, twin, who do I fuckin’ bust, nigga?",
+    "v": 0,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9615170,
+    "l": "[Intro]",
+    "v": 0,
+    "acc": false,
+    "iq": 131
+  },
+  {
+    "sid": 9615170,
+    "l": "Raf Simons swag, the pants pleated, the sweater is knitted",
+    "v": 0,
+    "acc": false,
+    "iq": 175
+  },
+  {
+    "sid": 11378100,
+    "l": "Know I gave you the world, Givenchy your toes",
+    "v": 0,
+    "acc": false,
+    "iq": 1999
+  },
+  {
+    "sid": 11378100,
+    "l": "(ok, let me hear your tag)",
+    "v": 0,
+    "acc": false,
+    "iq": 1999
+  },
+  {
+    "sid": 11378100,
+    "l": "It’s me and you, let’s lock in\n I love it when you walk in",
+    "v": 0,
+    "acc": false,
+    "iq": 17
+  },
+  {
+    "sid": 11378100,
+    "l": "I made some plans for us (ok, let me hear your tag)\n Wait ’til you lan",
+    "v": 0,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 11378100,
+    "l": "Been lookin’ for you, girl, why you never show?",
+    "v": 0,
+    "acc": false,
+    "iq": 187
+  },
+  {
+    "sid": 11378100,
+    "l": "Huh, talk to me, baby, I’m on that drank",
+    "v": 0,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Huh, talk to me, baby, I’m on that drank",
+    "v": 0,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 11378100,
+    "l": "Yeah, tell me what you need and I’ll break the bank (And I’ll break th",
+    "v": 0,
+    "acc": false,
+    "iq": 125
+  },
+  {
+    "sid": 10698743,
+    "l": "I wanna feel guilty\n I wanna feel that it’s wrong",
+    "v": 0,
+    "acc": false,
+    "iq": 3671
+  },
+  {
+    "sid": 10698743,
+    "l": "He won’t see it when I come",
+    "v": 0,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10698743,
+    "l": "He can’t see what I see",
+    "v": 0,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10286343,
+    "l": "Two freaky hoes, k-kissin’ at the same time",
+    "v": 0,
+    "acc": false,
+    "iq": 122
+  },
+  {
+    "sid": 10286343,
+    "l": "Yeah, you bad, but where your friends at?",
+    "v": 0,
+    "acc": false,
+    "iq": 115
+  },
+  {
+    "sid": 10286343,
+    "l": "They like, “How you do it?”\n Yeah, they like, “How you do it?” (Let’s ",
+    "v": 0,
+    "acc": false,
+    "iq": 115
+  },
+  {
+    "sid": 10286343,
+    "l": "Bitch, the check just hit (Beep, beep), it gone, yeah",
+    "v": 0,
+    "acc": false,
+    "iq": 121
+  },
+  {
+    "sid": 10286343,
+    "l": "The check just hit",
+    "v": 0,
+    "acc": false,
+    "iq": 262
+  },
+  {
+    "sid": 11294406,
+    "l": "Go hard, yeah, this bitch go hard",
+    "v": 0,
+    "acc": false,
+    "iq": 5
+  },
+  {
+    "sid": 11158806,
+    "l": "Cartier all up on the lens, these ain’t LensCrafters",
+    "v": 0,
+    "acc": false,
+    "iq": 161
+  },
+  {
+    "sid": 11158806,
+    "l": "I been on this shit before I could afford a meal",
+    "v": 0,
+    "acc": false,
+    "iq": 161
+  },
+  {
+    "sid": 11158806,
+    "l": "Throw some dollars on her, that’ll get her ass movin’",
+    "v": 0,
+    "acc": false,
+    "iq": 28
+  },
+  {
+    "sid": 11158806,
+    "l": "Bin Laden",
+    "v": 0,
+    "acc": false,
+    "iq": 129
+  },
+  {
+    "sid": 9766504,
+    "l": "Hit yo’ block and chop it up (Me and Rok gon’ rock and roll)",
+    "v": 0,
+    "acc": false,
+    "iq": 110
+  },
+  {
+    "sid": 9766504,
+    "l": "Pour more, not enough (Nah)",
+    "v": 0,
+    "acc": false,
+    "iq": 110
+  },
+  {
+    "sid": 9766504,
+    "l": "Put holes in your hoodie, man",
+    "v": 0,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 10355390,
+    "l": "MP5, got a new one",
+    "v": 0,
+    "acc": false,
+    "iq": 503
+  },
+  {
+    "sid": 10729409,
+    "l": "Francis",
+    "v": 0,
+    "acc": false,
+    "iq": 105
+  },
+  {
+    "sid": 9950523,
+    "l": "I’ma cop Balenci’, couple bags ’cause we fucked it up",
+    "v": -1,
+    "acc": false,
+    "iq": 623
+  },
+  {
+    "sid": 10483960,
+    "l": "It was so cold this winter, so we ’bout to pose and make it a hot-ass ",
+    "v": -1,
+    "acc": false,
+    "iq": 104
+  },
+  {
+    "sid": 9770611,
+    "l": "Went up, spent racks for the tennis",
+    "v": -1,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9770615,
+    "l": "Boy,",
+    "v": -1,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 10286343,
+    "l": "Yeah, you just fucked up, and that’s a bummer (Fucked up)",
+    "v": -1,
+    "acc": false,
+    "iq": 560
+  },
+  {
+    "sid": 11158806,
+    "l": "Throw some dollars on her, that’ll get her ass movin’",
+    "v": -1,
+    "acc": false,
+    "iq": 28
+  },
+  {
+    "sid": 9766504,
+    "l": "Check the net",
+    "v": -1,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9766504,
+    "l": "Got some shit that’ll send you to the sun",
+    "v": -1,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9766504,
+    "l": "We gon’ be ok)",
+    "v": -1,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9950523,
+    "l": "T it up",
+    "v": -2,
+    "acc": false,
+    "iq": 1429
+  },
+  {
+    "sid": 9770611,
+    "l": "Pussy call back up, back up-back—",
+    "v": -2,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 9770611,
+    "l": "And the X just hit for the finish (Yeah)",
+    "v": -2,
+    "acc": false,
+    "iq": 259
+  },
+  {
+    "sid": 11378100,
+    "l": "And you know that you my girl, everybody knows",
+    "v": -2,
+    "acc": false,
+    "iq": 17
+  },
+  {
+    "sid": 9766504,
+    "l": "Bag, fucked it up",
+    "v": -2,
+    "acc": false,
+    "iq": 148
+  },
+  {
+    "sid": 11004555,
+    "l": "I got drug endeavors, I pop pink and blues (ok is the hardest, I swear",
+    "v": -3,
+    "acc": false,
+    "iq": 2
+  },
+  {
+    "sid": 11888196,
+    "l": "I’m bleedin’ from my neck, I just got some new princess cuts, huh",
+    "v": -4,
+    "acc": false,
+    "iq": 126
+  },
+  {
+    "sid": 8722677,
+    "l": "[Chorus]",
+    "v": -4,
+    "acc": false,
+    "iq": 752
+  },
+  {
+    "sid": 8722677,
+    "l": "In the club with a drum",
+    "v": -4,
+    "acc": false,
+    "iq": 1958
+  },
+  {
+    "sid": 9770611,
+    "l": "Twin pour-twin pourin’ up red, yuh",
+    "v": -6,
+    "acc": false,
+    "iq": 259
+  },
+  {
+    "sid": 10355390,
+    "l": "Damn, pull up with a chop’ (Damn, damn)\n D-damn, let’s go, we got mops",
+    "v": -8,
+    "acc": false,
+    "iq": 199
+  },
+  {
+    "sid": 10199307,
+    "l": "Top floorin’",
+    "v": -11,
+    "acc": false,
+    "iq": 256
+  },
+  {
+    "sid": 10698743,
+    "l": "I’m in bed, layin’ down, naked\n He’s inside of me\n I love him, kiss hi",
+    "v": -20,
+    "acc": false,
+    "iq": 213
+  },
+  {
+    "sid": 10052087,
+    "l": "Find it hard to say, I know that I’m alright\n Took a while for me to f",
+    "v": -47,
+    "acc": false,
+    "iq": 62
+  }
+]
+;
+
+    const liked = new Set();
+    
+    function render() {
+      const container = document.getElementById('bars');
+      container.innerHTML = bars.map((bar, i) => `
+        <div class="bar" data-idx="${i}">
+          <span class="votes">${bar.v}</span>
+          ${bar.acc ? '<span class="acc">✓</span>' : '<span style="width:16px"></span>'}
+          <span class="lyric">${escapeHtml(bar.l)}</span>
+          <button class="like-btn ${liked.has(i) ? 'liked' : ''}" onclick="toggle(${i})">
+            ${liked.has(i) ? '★' : '☆'}
+          </button>
+        </div>
+      `).join('');
+      
+      document.getElementById('totalCount').textContent = bars.length;
+      document.getElementById('likedCount').textContent = liked.size;
+      updateOutput();
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function toggle(idx) {
+      if (liked.has(idx)) {
+        liked.delete(idx);
+      } else {
+        liked.add(idx);
+      }
+      render();
+    }
+    
+    function updateOutput() {
+      const likedBars = [...liked].sort((a,b) => a-b).map(i => bars[i]);
+      if (likedBars.length === 0) {
+        document.getElementById('output').textContent = 'Click some bars above...';
+        return;
+      }
+      
+      const output = likedBars.map(b => JSON.stringify({
+        v: b.v,
+        acc: b.acc,
+        iq: b.iq,
+        l: b.l
+      })).join('\n');
+      
+      document.getElementById('output').textContent = output;
+    }
+    
+    render();
+  </script>
+</body>
+</html>
