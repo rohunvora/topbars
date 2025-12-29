@@ -387,32 +387,62 @@
     function parseOutput(output) {
       const bars = [];
 
-      // Match patterns like "BAR 1: ..." or "BAR 2: ..."
-      const barRegex = /BAR \d+:\s*"?([^"]+)"?\s*\nTechnique:\s*([^\n]+)\s*\nWhy:\s*([^\n]+)/g;
+      // Split output by "BAR 1:", "BAR 2:", "BAR 3:" patterns
+      const sections = output.split(/BAR \d+:\s*/);
 
-      let match;
-      while ((match = barRegex.exec(output)) !== null) {
-        bars.push({
-          text: match[1].trim().replace(/^"|"$/g, ''),
-          technique: match[2].trim(),
-          why: match[3].trim()
-        });
-      }
+      for (let i = 1; i < sections.length; i++) {
+        const section = sections[i].trim();
+        if (!section) continue;
 
-      // Fallback: try simpler pattern if structured parsing fails
-      if (bars.length === 0) {
-        const lines = output.split('\n').filter(l => l.trim());
-        for (const line of lines) {
-          if (line.startsWith('BAR')) {
-            const text = line.replace(/^BAR \d+:\s*"?/, '').replace(/"?\s*$/, '');
-            if (text.length > 10) {
-              bars.push({ text, technique: 'Unknown', why: '' });
-            }
+        // Extract bar text (everything before "Technique:")
+        const techniqueIdx = section.indexOf('Technique:');
+        if (techniqueIdx === -1) {
+          // No technique found - take first line as bar
+          const firstLine = section.split('\n')[0].trim();
+          if (firstLine.length > 5) {
+            bars.push({
+              text: cleanBarText(firstLine),
+              technique: '',
+              why: ''
+            });
           }
+          continue;
+        }
+
+        const barText = section.substring(0, techniqueIdx).trim();
+
+        // Extract technique (between "Technique:" and "Why:")
+        const whyIdx = section.indexOf('Why:');
+        let technique = '';
+        let why = '';
+
+        if (whyIdx !== -1) {
+          technique = section.substring(techniqueIdx + 10, whyIdx).trim();
+          // Extract why (after "Why:" until next BAR or end)
+          const afterWhy = section.substring(whyIdx + 4);
+          why = afterWhy.split('\n')[0].trim();
+        } else {
+          technique = section.substring(techniqueIdx + 10).split('\n')[0].trim();
+        }
+
+        if (barText.length > 5) {
+          bars.push({
+            text: cleanBarText(barText),
+            technique: technique,
+            why: why
+          });
         }
       }
 
       return bars;
+    }
+
+    // Clean up bar text - remove quotes, extra whitespace
+    function cleanBarText(text) {
+      return text
+        .replace(/^["'"]+|["'"]+$/g, '')  // Remove surrounding quotes
+        .replace(/\s+/g, ' ')              // Normalize whitespace
+        .trim();
     }
 
     // ============================================================
