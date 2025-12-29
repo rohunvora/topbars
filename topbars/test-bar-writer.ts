@@ -242,60 +242,15 @@ interface TestResult {
 // OUTPUT CLEANING
 // ============================================================================
 
-// Brand names and proper nouns to preserve capitalization
-const PRESERVE_CAPS = [
-  // Tech
-  'iPhone', 'iPad', 'Apple', 'Google', 'Netflix', 'Spotify', 'Amazon', 'Tesla',
-  'PlayStation', 'Xbox', 'Nintendo', 'Switch', 'Windows', 'Mac', 'Android',
-  'TikTok', 'Instagram', 'Facebook', 'Twitter', 'Snapchat', 'YouTube', 'Twitch',
-  'Uber', 'Lyft', 'Venmo', 'PayPal', 'Wi-Fi', 'WiFi', 'iMessage', 'Kindle', 'Siri',
-  // Cars
-  'BMW', 'Mercedes', 'Benz', 'Porsche', 'Ferrari', 'Lamborghini', 'Lambo',
-  'Audi', 'Lexus', 'Rolls', 'Royce', 'Bentley', 'Maybach',
-  // Fashion
-  'Gucci', 'Louis', 'Vuitton', 'Prada', 'Chanel', 'Dior', 'Versace',
-  'Balenciaga', 'Nike', 'Adidas', 'Jordan', 'Jordans', 'Yeezy', 'Supreme',
-  'Rolex', 'Cartier', 'Patek',
-  // Characters/Shows
-  'Garfield', 'SpongeBob', 'Spongebob', 'Pikachu', 'Pokemon', 'Mario', 'Zelda',
-  'GTA', 'Fortnite', 'Minecraft', 'Casper', 'Snorlax', 'Thanos', 'Batman',
-  'Drake', 'Kanye', 'Jay-Z', 'Beyonce', 'Cinderella', 'Disney', 'Marvel',
-  'Odell', 'LeBron', 'Kobe', 'Curry', 'Brady', 'Ferb', 'Phineas',
-  // Days
-  'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
-  // Places
-  'LA', 'NYC', 'Miami', 'Atlanta', 'ATL', 'Houston', 'Chicago', 'Hollywood',
-  // Other
-  'MySpace', 'Java', 'API', 'GPS', 'ATM', 'VIP', 'NBA', 'NFL', 'MLB',
-];
-
-const preservePattern = new RegExp(
-  `\\b(${PRESERVE_CAPS.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
-  'gi'
-);
-
-/** Clean a single bar text */
+/** Clean bar text: all lowercase, no quotes, no apostrophes, no punctuation */
 function cleanBarText(text: string): string {
-  let cleaned = text
-    .replace(/^["'"'"«»„"]+|["'"'"«»„"]+$/g, '')  // Remove surrounding quotes
-    .replace(/\s*[—–-]{1,2}\s*/g, ', ')            // Replace dashes with comma
-    .replace(/[.!?;:""„""«»"']+/g, '')             // Remove punctuation
-    .replace(/\s+/g, ' ')                           // Normalize whitespace
-    .replace(/,\s*,/g, ',')                         // Remove double commas
-    .replace(/^,\s*|\s*,$/g, '')                    // Remove leading/trailing commas
+  return text
+    .replace(/[\u0022\u0027\u0060\u00B4\u2018\u2019\u201A\u201B\u201C\u201D\u201E\u201F\u2032\u2033\u2034\u2035\u2036\u2037\u00AB\u00BB]+/g, '')  // all quote/apostrophe variants
+    .replace(/[.!?;:]+/g, '')
+    .replace(/\s*[—–\-]+\s*/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
-
-  // Restore capitalization for preserved words
-  cleaned = cleaned.replace(preservePattern, (match) => {
-    const found = PRESERVE_CAPS.find(w => w.toLowerCase() === match.toLowerCase());
-    return found || match;
-  });
-
-  // Capitalize standalone "I"
-  cleaned = cleaned.replace(/\bi\b/g, 'I');
-
-  return cleaned;
 }
 
 /** Clean bar text in output before saving */
