@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate Bar Writer Outputs</title>
+  <style>
+    /* ============================================================
+       RATE OUTPUTS - UI for rating AI-generated bar translations
+       ============================================================ */
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      line-height: 1.5;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 1.5em;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    /* Stats bar - fixed top right */
+    #stats {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      z-index: 100;
+    }
+
+    #stats .count {
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    /* File loader */
+    #loader {
+      background: #1a1a1a;
+      border: 2px dashed #333;
+      padding: 40px;
+      text-align: center;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    #loader.hidden { display: none; }
+
+    #loader input[type="file"] {
+      display: none;
+    }
+
+    #loader label {
+      background: #2a2a2a;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-block;
+    }
+
+    #loader label:hover {
+      background: #333;
+    }
+
+    /* Filter bar */
+    #filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    #filters select, #filters button {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid #333;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.85em;
+      cursor: pointer;
+    }
+
+    #filters button.active {
+      background: #4ade80;
+      color: #000;
+      border-color: #4ade80;
+    }
+
+    /* Translation card */
+    .card {
+      background: #1a1a1a;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: #222;
+      padding: 12px 16px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .input-text {
+      font-size: 1.1em;
+      color: #fff;
+    }
+
+    .category-tag {
+      font-size: 0.75em;
+      background: #333;
+      color: #888;
+      padding: 3px 8px;
+      border-radius: 3px;
+    }
+
+    /* Individual bar */
+    .bar {
+      padding: 14px 16px;
+      border-bottom: 1px solid #252525;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: background 0.15s;
+    }
+
+    .bar:last-child {
+      border-bottom: none;
+    }
+
+    .bar:hover {
+      background: #222;
+    }
+
+    .bar.liked {
+      background: #0f2a1a;
+      border-left: 3px solid #4ade80;
+    }
+
+    .like-btn {
+      background: #2a2a2a;
+      border: none;
+      color: #555;
+      font-size: 1.2em;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+
+    .like-btn:hover {
+      background: #333;
+      color: #888;
+    }
+
+    .like-btn.active {
+      background: #4ade80;
+      color: #000;
+    }
+
+    .bar-content {
+      flex: 1;
+    }
+
+    .bar-text {
+      font-size: 1em;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .bar-meta {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .technique {
+      color: #888;
+      background: #252525;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-right: 8px;
+    }
+
+    /* Export section */
+    #export {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 30px;
+    }
+
+    #export h2 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: #fff;
+    }
+
+    #export-btns {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    #export-btns button {
+      background: #4ade80;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+    }
+
+    #export-btns button:hover {
+      background: #3fcf70;
+    }
+
+    #output {
+      background: #0d0d0d;
+      border: 1px solid #333;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      font-size: 0.85em;
+      max-height: 300px;
+      overflow: auto;
+      color: #888;
+    }
+
+    /* Empty state */
+    #empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #555;
+    }
+
+    #empty.hidden { display: none; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      #stats { position: static; margin-bottom: 15px; }
+      .bar { flex-direction: column; }
+      .like-btn { align-self: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Rate Bar Writer Outputs</h1>
+  <p class="subtitle">Click the heart to save your favorite bars. Export when done.</p>
+
+  <div id="stats">
+    Liked: <span class="count" id="likeCount">0</span> / <span id="totalCount">0</span>
+  </div>
+
+  <!-- File loader -->
+  <div id="loader">
+    <p>Load a test results JSON file from <code>test-results/</code></p>
+    <label for="fileInput">Choose JSON File</label>
+    <input type="file" id="fileInput" accept=".json">
+  </div>
+
+  <!-- Filters -->
+  <div id="filters" class="hidden">
+    <select id="categoryFilter">
+      <option value="all">All Categories</option>
+    </select>
+    <button id="showLiked">Show Liked Only</button>
+  </div>
+
+  <!-- Cards container -->
+  <div id="cards"></div>
+
+  <!-- Empty state -->
+  <div id="empty" class="hidden">
+    No bars match this filter.
+  </div>
+
+  <!-- Export section -->
+  <div id="export" class="hidden">
+    <h2>Export Liked Bars</h2>
+    <div id="export-btns">
+      <button onclick="copyJSON()">Copy JSON</button>
+      <button onclick="copyText()">Copy as Text</button>
+    </div>
+    <pre id="output">[]</pre>
+  </div>
+
+  <script>
+    // ============================================================
+    // STATE
+    // ============================================================
+
+    let allBars = [];        // Array of {id, category, input, text, technique, why}
+    let liked = new Set();   // Set of liked bar IDs
+    let showingLikedOnly = false;
+
+    // ============================================================
+    // FILE LOADING
+    // ============================================================
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          processTestResults(data);
+        } catch (err) {
+          alert('Error parsing JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // ============================================================
+    // PARSE TEST RESULTS INTO INDIVIDUAL BARS
+    // ============================================================
+
+    function processTestResults(results) {
+      allBars = [];
+      let id = 0;
+
+      for (const result of results) {
+        if (result.error) continue;
+
+        // Parse the output to extract individual bars
+        const bars = parseOutput(result.output);
+
+        for (const bar of bars) {
+          allBars.push({
+            id: id++,
+            category: result.category,
+            input: result.input,
+            text: bar.text,
+            technique: bar.technique,
+            why: bar.why
+          });
+        }
+      }
+
+      // Build category filter
+      const categories = [...new Set(allBars.map(b => b.category))];
+      const select = document.getElementById('categoryFilter');
+      select.innerHTML = '<option value="all">All Categories</option>';
+      for (const cat of categories) {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat.replace(/_/g, ' ');
+        select.appendChild(opt);
+      }
+
+      // Show UI
+      document.getElementById('loader').classList.add('hidden');
+      document.getElementById('filters').classList.remove('hidden');
+      document.getElementById('export').classList.remove('hidden');
+
+      render();
+    }
+
+    // Parse AI output into individual bars
+    function parseOutput(output) {
+      const bars = [];
+
+      // Match patterns like "BAR 1: ..." or "BAR 2: ..."
+      const barRegex = /BAR \d+:\s*"?([^"]+)"?\s*\nTechnique:\s*([^\n]+)\s*\nWhy:\s*([^\n]+)/g;
+
+      let match;
+      while ((match = barRegex.exec(output)) !== null) {
+        bars.push({
+          text: match[1].trim().replace(/^"|"$/g, ''),
+          technique: match[2].trim(),
+          why: match[3].trim()
+        });
+      }
+
+      // Fallback: try simpler pattern if structured parsing fails
+      if (bars.length === 0) {
+        const lines = output.split('\n').filter(l => l.trim());
+        for (const line of lines) {
+          if (line.startsWith('BAR')) {
+            const text = line.replace(/^BAR \d+:\s*"?/, '').replace(/"?\s*$/, '');
+            if (text.length > 10) {
+              bars.push({ text, technique: 'Unknown', why: '' });
+            }
+          }
+        }
+      }
+
+      return bars;
+    }
+
+    // ============================================================
+    // RENDERING
+    // ============================================================
+
+    function render() {
+      const container = document.getElementById('cards');
+      const categoryFilter = document.getElementById('categoryFilter').value;
+
+      // Filter bars
+      let filtered = allBars;
+      if (categoryFilter !== 'all') {
+        filtered = filtered.filter(b => b.category === categoryFilter);
+      }
+      if (showingLikedOnly) {
+        filtered = filtered.filter(b => liked.has(b.id));
+      }
+
+      // Group by input
+      const grouped = {};
+      for (const bar of filtered) {
+        const key = `${bar.category}::${bar.input}`;
+        if (!grouped[key]) {
+          grouped[key] = { category: bar.category, input: bar.input, bars: [] };
+        }
+        grouped[key].bars.push(bar);
+      }
+
+      // Render cards
+      const entries = Object.values(grouped);
+
+      if (entries.length === 0) {
+        container.innerHTML = '';
+        document.getElementById('empty').classList.remove('hidden');
+      } else {
+        document.getElementById('empty').classList.add('hidden');
+        container.innerHTML = entries.map(group => `
+          <div class="card">
+            <div class="card-header">
+              <span class="input-text">"${escapeHtml(group.input)}"</span>
+              <span class="category-tag">${group.category.replace(/_/g, ' ')}</span>
+            </div>
+            ${group.bars.map(bar => `
+              <div class="bar ${liked.has(bar.id) ? 'liked' : ''}" data-id="${bar.id}">
+                <button class="like-btn ${liked.has(bar.id) ? 'active' : ''}" onclick="toggle(${bar.id})">♥</button>
+                <div class="bar-content">
+                  <div class="bar-text">${escapeHtml(bar.text)}</div>
+                  <div class="bar-meta">
+                    <span class="technique">${escapeHtml(bar.technique)}</span>
+                    ${bar.why ? escapeHtml(bar.why) : ''}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `).join('');
+      }
+
+      // Update counts
+      document.getElementById('likeCount').textContent = liked.size;
+      document.getElementById('totalCount').textContent = allBars.length;
+
+      updateExport();
+    }
+
+    // ============================================================
+    // INTERACTIONS
+    // ============================================================
+
+    function toggle(id) {
+      if (liked.has(id)) {
+        liked.delete(id);
+      } else {
+        liked.add(id);
+      }
+      render();
+    }
+
+    // Category filter
+    document.getElementById('categoryFilter').addEventListener('change', render);
+
+    // Show liked only toggle
+    document.getElementById('showLiked').addEventListener('click', (e) => {
+      showingLikedOnly = !showingLikedOnly;
+      e.target.classList.toggle('active', showingLikedOnly);
+      e.target.textContent = showingLikedOnly ? 'Show All' : 'Show Liked Only';
+      render();
+    });
+
+    // ============================================================
+    // EXPORT
+    // ============================================================
+
+    function updateExport() {
+      const likedBars = allBars.filter(b => liked.has(b.id));
+      document.getElementById('output').textContent = JSON.stringify(likedBars, null, 2);
+    }
+
+    function copyJSON() {
+      const likedBars = allBars.filter(b => liked.has(b.id));
+      navigator.clipboard.writeText(JSON.stringify(likedBars, null, 2));
+      showCopied('Copy JSON');
+    }
+
+    function copyText() {
+      const likedBars = allBars.filter(b => liked.has(b.id));
+      const text = likedBars.map(b => `"${b.input}" → "${b.text}"`).join('\n\n');
+      navigator.clipboard.writeText(text);
+      showCopied('Copy as Text');
+    }
+
+    function showCopied(btnText) {
+      const btns = document.querySelectorAll('#export-btns button');
+      btns.forEach(btn => {
+        if (btn.textContent.includes(btnText.split(' ')[1])) {
+          const orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.textContent = orig, 1500);
+        }
+      });
+    }
+
+    // ============================================================
+    // UTILS
+    // ============================================================
+
+    function escapeHtml(s) {
+      if (!s) return '';
+      return s.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
