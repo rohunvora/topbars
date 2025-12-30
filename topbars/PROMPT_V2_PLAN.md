@@ -18,7 +18,7 @@ The current system prompt produces outputs that:
 
 ## User Goals
 
-**Primary use case:** Transforming real messages/tweets before sending them. Not generating "rap bars" but making everyday communication wittier and more propositionally dense.
+**Primary use case:** Transforming real messages/tweets/DMs/captions before sending them. Not generating "rap bars" but making everyday communication wittier and more propositionally dense.
 
 **What "better" means:**
 - Least words possible to convey most meaning
@@ -26,12 +26,23 @@ The current system prompt produces outputs that:
 - Unexpected connections, multiple meanings, pop culture analogies
 - Should surprise the user with connections they wouldn't have made
 
+**Smart transformation (key insight):**
+The system should be "smart" enough to:
+1. First assess if the concept/idea is clear
+2. If clear → extrapolate and enhance with wit
+3. If unclear → clarify while also making it sharper
+4. Always respect user's wish for a rewrite (user decides if original is better)
+
+**Critical insight on simplicity:**
+Sometimes the simple original IS better than any rewrite. "im tired" is probably better than 99% of clever rewrites. The system should recognize this implicitly - generic/mundane inputs often don't benefit from wordplay. Real value comes from enhancing inputs that have actual substance.
+
 **What to avoid:**
 - Over-explaining the joke
 - Forced/unnatural references
 - Wrong rhythm/cadence
 - Generic/safe references everyone uses
 - Structural monotony
+- Rewrites that lose the original's authenticity
 
 ---
 
@@ -52,6 +63,7 @@ Add crawled bars from:
 - Bo Burnham (comedy wordplay, meta humor)
 - Jean Dawson (experimental, alternative)
 - Lil B (based, stream of consciousness)
+- Swapa (user-specified)
 - Brockhampton (collective energy)
 - Keep: Ken Carson, OsamaSon, Nettspend (current pool)
 
@@ -114,9 +126,13 @@ New: Focus on propositional density - maximum meaning in minimum words
 
 **3.2 Output format**
 - Keep 3 variations max
-- Each variation MUST be structurally different
+- Each variation MUST be meaningfully different (not just structurally)
+  - Current problem: "all 3 suck" and feel samey
+  - Goal: Each should feel like an interesting choice between genuinely different approaches
+  - Different technique, different reference domain, different tone
 - Explanations toggleable (default: off for production, on for testing)
 - Keep artist references abstract (qualities not names)
+- System always attempts rewrite - user decides if original is better
 
 **3.3 Add "effortlessness" instruction**
 Explicit guidance:
@@ -146,12 +162,40 @@ Categories based on user's actual use cases:
 - Hot takes and opinions
 - Replies and reactions
 
-**4.3 Include user's actual examples**
-Add the 4 real examples from interview:
-1. "Market feels like 2021/22 on repeat except the big orange elephant..."
-2. "if ur still here, gg. ur here for a reason..." (long form)
-3. "i swear my biggest conspiracy is everytime u try a new perp dex..."
-4. "pretty rare these days to find a prompt you copy paste..."
+**4.3 Include user's actual examples (FULL TEXT)**
+
+**Example 1 - Market tweet (already has some wit):**
+```
+Market feels like 2021/22 on repeat except the big orange elephant in the white house
+
+i think the orange elephant will still find a way to send the market throughout the rest of his term
+```
+
+**Example 2 - Telegram group message (longer form, needs line-by-line):**
+```
+if ur still here, gg. ur here for a reason.
+
+if you havent contributed much recently, it means you have potential. and the group has high expectations for you.
+
+at bottom of post-april bear this group got down to 65 people.
+
+stay focused and clear headed. opportunities will continue to present themselves but most people will lose money on random noise.
+
+looking forward to navigate this shit ass fuck market with yall.
+```
+*Note: For longer inputs like this, system should go line-by-line to find enhancement opportunities while leaving some lines unchanged.*
+
+**Example 3 - Conspiracy tweet (colloquial, could use punch):**
+```
+i swear my biggest conspiracy is everytime u try a new perp dex they feed u wins then they hunt u until u lose everything
+```
+
+**Example 4 - Informative tweet (flat, needs swagger):**
+```
+pretty rare these days to find a prompt you copy paste and it magically makes everything better
+
+recently saw @trq212 post something and after playing with it, it's best new concept i've seen in a while, the idea of forcing claude to ask you as many follow ups as possible
+```
 
 ---
 
@@ -191,7 +235,8 @@ Proxy metrics:
 1. Which bars from current liked-bars.json should definitely stay vs go?
 2. Want to provide more real test inputs beyond the 4 examples?
 3. Preferred temperature setting - current 0.9 might contribute to sameness at scale?
-4. Should there be a "don't change this" option when original is already strong?
+
+*(Note: Question about "don't change this" was answered - system always attempts rewrite, user decides if original is better)*
 
 ---
 
@@ -202,6 +247,32 @@ Proxy metrics:
 - `test-bar-writer.ts` - New test inputs
 - `tools/crawl-artist.sh` - Add new artist IDs
 - NEW: `reference/negative-examples.json` - Bad outputs to avoid
+
+---
+
+## Appendix: Raw Interview Insights
+
+Captured verbatim from user for reference:
+
+| Topic | User Response |
+|-------|---------------|
+| Use case | "paste in things about to send as a message, or post as a tweet, hope it makes output better than what I originally wrote" |
+| Transformation | "smart - figure out if concept is clear first, extrapolate on top if so, clarify while being wittier if not" |
+| Voice | "not about storing what I write like - focus on making output as propositionally dense/witty/sharp as possible" |
+| Density | "least words possible to convey most meaning... craft is doing it where it feels effortless/natural/not trying too hard" |
+| AI smell | "all of the above" (too explanatory, forced refs, wrong cadence) |
+| Techniques | "don't hate this, but worry it's overindexed and forces fits where they might not belong" |
+| Output count | "3 is max. Ideally unique enough where it's an interesting choice. My experience so far is they all 3 suck" |
+| Explanations | "optional/toggleable" |
+| Simple inputs | "'im tired' is probably better than 99% of rewrites" |
+| Real inputs | "DMs, replies, captions, tweets, thoughts, opinions" |
+| Pass option | "user can decide if better - always respect user's wishes (which is a rewrite)" |
+| Annotations | "run a pass to make more system prompt example friendly (not 'summarize' but refine)" |
+| Anti-examples | "yes, show what to avoid - use AI outputs that suck" |
+| Example count | "depends on quality - only keep the best, cut ruthlessly" |
+| Artist naming | "keep abstract - focus on qualities not names" |
+| New artists | "Frank Ocean, Drake, BabyTron, Bo Burnham, Jean Dawson, Lil B, Swapa, Brockhampton" |
+| Success | "I'll know it when I see it" |
 
 ---
 
