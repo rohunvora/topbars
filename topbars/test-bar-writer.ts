@@ -188,6 +188,22 @@ const TEST_INPUTS: Record<string, string[]> = {
     "She said she loved me but her actions never matched her words and now I realize I was just an option",
     "Everyone around me is getting married and having kids and I'm just focused on my goals",
   ],
+
+  // REAL USER INPUTS - Actual things user would paste in
+
+  'real_tweets': [
+    "Market feels like 2021/22 on repeat except the big orange elephant in the white house",
+    "i think the orange elephant will still find a way to send the market throughout the rest of his term",
+    "i swear my biggest conspiracy is everytime u try a new perp dex they feed u wins then they hunt u until u lose everything",
+    "pretty rare these days to find a prompt you copy paste and it magically makes everything better",
+  ],
+
+  'real_longer': [
+    "if ur still here, gg. ur here for a reason. if you havent contributed much recently, it means you have potential. and the group has high expectations for you.",
+    "stay focused and clear headed. opportunities will continue to present themselves but most people will lose money on random noise.",
+    "looking forward to navigate this shit ass fuck market with yall",
+    "recently saw someone post something and after playing with it, its best new concept ive seen in a while, the idea of forcing claude to ask you as many follow ups as possible",
+  ],
 };
 
 // ============================================================================
@@ -217,7 +233,8 @@ function loadEnv(): void {
 
 /** Load the bar-writer system prompt */
 function loadSystemPrompt(): string {
-  const promptPath = path.join(__dirname, 'prompt', 'bar-writer.md');
+  // Use v2 prompt
+  const promptPath = path.join(__dirname, 'prompt', 'bar-writer-v2.md');
   if (!fs.existsSync(promptPath)) {
     throw new Error(`System prompt not found at: ${promptPath}`);
   }
@@ -259,12 +276,13 @@ function cleanOutput(output: string): string {
   const cleanedLines: string[] = [];
 
   for (const line of lines) {
-    const barMatch = line.match(/^BAR (\d+):\s*(.+)$/);
+    // Handle both formats: "BAR 1: text" and "1: text"
+    const barMatch = line.match(/^(?:BAR\s*)?(\d+):\s*(.+)$/);
     if (barMatch) {
       const barNum = barMatch[1];
       const barText = barMatch[2].trim();
-      cleanedLines.push(`BAR ${barNum}: ${cleanBarText(barText)}`);
-    } else {
+      cleanedLines.push(`${barNum}: ${cleanBarText(barText)}`);
+    } else if (line.trim()) {
       cleanedLines.push(line);
     }
   }
