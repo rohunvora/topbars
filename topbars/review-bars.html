@@ -53,6 +53,7 @@
     }
     .bar-meta {
       display: flex;
+      flex-wrap: wrap;
       gap: 16px;
       color: #888;
       font-size: 0.85rem;
@@ -82,18 +83,10 @@
     }
     button:hover { transform: scale(1.02); }
     button:active { transform: scale(0.98); }
-    .btn-yes {
-      background: #22c55e;
-      color: white;
-    }
-    .btn-no {
-      background: #ef4444;
-      color: white;
-    }
-    .btn-skip {
-      background: #6b7280;
-      color: white;
-    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-yes { background: #22c55e; color: white; }
+    .btn-no { background: #ef4444; color: white; }
+    .btn-skip { background: #6b7280; color: white; }
     .nav-buttons {
       display: flex;
       gap: 12px;
@@ -124,17 +117,9 @@
       gap: 16px;
       margin-bottom: 16px;
     }
-    .summary-item {
-      text-align: center;
-    }
-    .summary-value {
-      font-size: 2rem;
-      font-weight: bold;
-    }
-    .summary-label {
-      color: #888;
-      font-size: 0.85rem;
-    }
+    .summary-item { text-align: center; }
+    .summary-value { font-size: 2rem; font-weight: bold; }
+    .summary-label { color: #888; font-size: 0.85rem; }
     .done-message {
       text-align: center;
       padding: 60px 20px;
@@ -149,226 +134,340 @@
       font-size: 0.8rem;
       margin-top: 10px;
     }
-    .file-input-wrapper {
+    .loading {
       text-align: center;
       padding: 60px 20px;
-    }
-    .file-input-wrapper p {
-      margin-bottom: 20px;
       color: #888;
     }
-    input[type="file"] {
-      display: none;
+    .error {
+      text-align: center;
+      padding: 60px 20px;
+      color: #ef4444;
     }
-    .file-label {
-      display: inline-block;
-      padding: 14px 28px;
-      background: #3b82f6;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
+    .status-indicator {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
       font-weight: 600;
     }
-    .file-label:hover {
-      background: #2563eb;
-    }
+    .status-yes { background: #22c55e33; color: #22c55e; }
+    .status-no { background: #ef444433; color: #ef4444; }
+    .status-skip { background: #6b728033; color: #9ca3af; }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Review Bars - Pass 3</h1>
-
     <div id="app">
-      <div class="file-input-wrapper">
-        <p>Load the bars file to start reviewing</p>
-        <label class="file-label">
-          <input type="file" id="file-input" accept=".jsonl">
-          Load review-bars.jsonl
-        </label>
-      </div>
+      <div class="loading">Loading bars...</div>
     </div>
   </div>
 
   <script>
-    let bars = [];
-    let currentIndex = 0;
-    let ratings = {}; // sid -> 'yes' | 'no' | 'skip'
+    // =========================================================================
+    // STATE - Using bar index as unique ID (not sid which is song ID)
+    // =========================================================================
+    var bars = [];
+    var currentIndex = 0;
+    var ratings = {}; // barIndex (string) -> 'yes' | 'no' | 'skip'
 
-    // Load saved progress
-    const saved = localStorage.getItem('bar-review-progress');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        ratings = data.ratings || {};
-        currentIndex = data.currentIndex || 0;
-      } catch (e) {}
-    }
+    var STORAGE_KEY = 'bar-review-v2'; // New key to avoid old buggy data
 
+    // =========================================================================
+    // PERSISTENCE - Save after EVERY action
+    // =========================================================================
     function saveProgress() {
-      localStorage.setItem('bar-review-progress', JSON.stringify({
-        ratings,
-        currentIndex
-      }));
+      try {
+        var data = {
+          ratings: ratings,
+          currentIndex: currentIndex,
+          savedAt: new Date().toISOString(),
+          totalBars: bars.length
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error('Failed to save progress:', e);
+        alert('Warning: Failed to save progress to localStorage!');
+      }
     }
 
+    function loadProgress() {
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          var data = JSON.parse(saved);
+          ratings = data.ratings || {};
+          currentIndex = data.currentIndex || 0;
+          console.log('Loaded progress:', Object.keys(ratings).length, 'ratings, index:', currentIndex);
+        }
+      } catch (e) {
+        console.error('Failed to load progress:', e);
+        ratings = {};
+        currentIndex = 0;
+      }
+    }
+
+    // =========================================================================
+    // STATS
+    // =========================================================================
+    function getStats() {
+      var yes = 0, no = 0, skip = 0;
+      for (var k in ratings) {
+        if (ratings[k] === 'yes') yes++;
+        else if (ratings[k] === 'no') no++;
+        else if (ratings[k] === 'skip') skip++;
+      }
+      return { yes: yes, no: no, skip: skip, total: yes + no + skip };
+    }
+
+    // =========================================================================
+    // RENDER
+    // =========================================================================
     function render() {
-      const app = document.getElementById('app');
+      var app = document.getElementById('app');
 
       if (bars.length === 0) {
-        return; // Still showing file input
-      }
-
-      const reviewed = Object.keys(ratings).length;
-      const yes = Object.values(ratings).filter(r => r === 'yes').length;
-      const no = Object.values(ratings).filter(r => r === 'no').length;
-      const progress = (reviewed / bars.length) * 100;
-
-      if (currentIndex >= bars.length) {
-        app.innerHTML = `
-          <div class="done-message">
-            <h2>All Done!</h2>
-            <p>You've reviewed all ${bars.length} bars.</p>
-          </div>
-          <div class="export-section">
-            <div class="summary">
-              <div class="summary-item">
-                <div class="summary-value" style="color: #22c55e">${yes}</div>
-                <div class="summary-label">Approved</div>
-              </div>
-              <div class="summary-item">
-                <div class="summary-value" style="color: #ef4444">${no}</div>
-                <div class="summary-label">Rejected</div>
-              </div>
-              <div class="summary-item">
-                <div class="summary-value" style="color: #6b7280">${reviewed - yes - no}</div>
-                <div class="summary-label">Skipped</div>
-              </div>
-            </div>
-            <button class="export-btn" onclick="exportApproved()">Export Approved Bars</button>
-          </div>
-        `;
+        app.innerHTML = '<div class="loading">Loading bars...</div>';
         return;
       }
 
-      const bar = bars[currentIndex];
-      const existingRating = ratings[bar.sid];
+      var stats = getStats();
+      var progress = (stats.total / bars.length) * 100;
 
-      app.innerHTML = `
-        <div class="stats">
-          ${currentIndex + 1} of ${bars.length} • ${yes} approved • ${no} rejected
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" style="width: ${progress}%"></div>
-        </div>
+      // Done state
+      if (currentIndex >= bars.length) {
+        app.innerHTML =
+          '<div class="done-message">' +
+            '<h2>All Done!</h2>' +
+            '<p>You reviewed all ' + bars.length + ' bars.</p>' +
+          '</div>' +
+          '<div class="export-section">' +
+            '<div class="summary">' +
+              '<div class="summary-item">' +
+                '<div class="summary-value" style="color: #22c55e">' + stats.yes + '</div>' +
+                '<div class="summary-label">Approved</div>' +
+              '</div>' +
+              '<div class="summary-item">' +
+                '<div class="summary-value" style="color: #ef4444">' + stats.no + '</div>' +
+                '<div class="summary-label">Rejected</div>' +
+              '</div>' +
+              '<div class="summary-item">' +
+                '<div class="summary-value" style="color: #6b7280">' + stats.skip + '</div>' +
+                '<div class="summary-label">Skipped</div>' +
+              '</div>' +
+            '</div>' +
+            '<button class="export-btn" onclick="exportApproved()">Export Approved Bars</button>' +
+          '</div>';
+        return;
+      }
 
-        <div class="bar-card">
-          <div class="bar-text">"${bar.text}"</div>
-          <div class="bar-meta">
-            <span class="technique-tag">${bar.technique_type}</span>
-            <span>Score: ${bar.score}</span>
-            <span>Votes: ${bar.votes}</span>
-            ${existingRating ? `<span style="color: ${existingRating === 'yes' ? '#22c55e' : existingRating === 'no' ? '#ef4444' : '#6b7280'}">• ${existingRating.toUpperCase()}</span>` : ''}
-          </div>
-          <div class="buttons">
-            <button class="btn-yes" onclick="rate('yes')">✓ Good Example</button>
-            <button class="btn-no" onclick="rate('no')">✗ Not Good</button>
-            <button class="btn-skip" onclick="rate('skip')">Skip</button>
-          </div>
-        </div>
+      var bar = bars[currentIndex];
+      var barId = String(currentIndex);
+      var existingRating = ratings[barId];
 
-        <div class="nav-buttons">
-          <button onclick="prev()" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
-          <button onclick="next()">Next →</button>
-        </div>
+      var statusHtml = '';
+      if (existingRating) {
+        var statusClass = 'status-' + existingRating;
+        statusHtml = '<span class="status-indicator ' + statusClass + '">' + existingRating.toUpperCase() + '</span>';
+      }
 
-        <div class="keyboard-hint">
-          Keyboard: Y = approve, N = reject, S = skip, ← → = navigate
-        </div>
-
-        <div class="export-section">
-          <h2>Export Progress</h2>
-          <div class="summary">
-            <div class="summary-item">
-              <div class="summary-value" style="color: #22c55e">${yes}</div>
-              <div class="summary-label">Approved</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-value" style="color: #ef4444">${no}</div>
-              <div class="summary-label">Rejected</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-value" style="color: #6b7280">${reviewed - yes - no}</div>
-              <div class="summary-label">Skipped</div>
-            </div>
-          </div>
-          <button class="export-btn" onclick="exportApproved()">Export Approved Bars</button>
-        </div>
-      `;
+      app.innerHTML =
+        '<div class="stats">' +
+          (currentIndex + 1) + ' of ' + bars.length + ' • ' +
+          stats.yes + ' approved • ' + stats.no + ' rejected • ' + stats.skip + ' skipped' +
+        '</div>' +
+        '<div class="progress-bar">' +
+          '<div class="progress-fill" style="width: ' + progress + '%"></div>' +
+        '</div>' +
+        '<div class="bar-card">' +
+          '<div class="bar-text">"' + escapeHtml(bar.text) + '"</div>' +
+          '<div class="bar-meta">' +
+            '<span class="technique-tag">' + bar.technique_type + '</span>' +
+            '<span>Score: ' + bar.score + '</span>' +
+            '<span>Votes: ' + bar.votes + '</span>' +
+            '<span>Bar #' + currentIndex + '</span>' +
+            statusHtml +
+          '</div>' +
+          '<div class="buttons">' +
+            '<button class="btn-yes" onclick="rate(\'yes\')">✓ Good (Y)</button>' +
+            '<button class="btn-no" onclick="rate(\'no\')">✗ Bad (N)</button>' +
+            '<button class="btn-skip" onclick="rate(\'skip\')">Skip (S)</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="nav-buttons">' +
+          '<button onclick="prev()" ' + (currentIndex === 0 ? 'disabled' : '') + '>← Previous</button>' +
+          '<button onclick="next()">Next →</button>' +
+        '</div>' +
+        '<div class="keyboard-hint">' +
+          'Y = approve, N = reject, S = skip, ← → = navigate (skips if unrated)' +
+        '</div>' +
+        '<div class="export-section">' +
+          '<h2>Export Progress</h2>' +
+          '<div class="summary">' +
+            '<div class="summary-item">' +
+              '<div class="summary-value" style="color: #22c55e">' + stats.yes + '</div>' +
+              '<div class="summary-label">Approved</div>' +
+            '</div>' +
+            '<div class="summary-item">' +
+              '<div class="summary-value" style="color: #ef4444">' + stats.no + '</div>' +
+              '<div class="summary-label">Rejected</div>' +
+            '</div>' +
+            '<div class="summary-item">' +
+              '<div class="summary-value" style="color: #6b7280">' + stats.skip + '</div>' +
+              '<div class="summary-label">Skipped</div>' +
+            '</div>' +
+          '</div>' +
+          '<button class="export-btn" onclick="exportApproved()">Export Approved Bars (' + stats.yes + ')</button>' +
+        '</div>';
     }
 
+    function escapeHtml(text) {
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // =========================================================================
+    // ACTIONS
+    // =========================================================================
     function rate(rating) {
-      const bar = bars[currentIndex];
-      ratings[bar.sid] = rating;
+      if (currentIndex >= bars.length) return;
+
+      var barId = String(currentIndex);
+      ratings[barId] = rating;
       saveProgress();
+
       currentIndex++;
+      saveProgress(); // Save again after index change
+
       render();
     }
 
     function prev() {
       if (currentIndex > 0) {
         currentIndex--;
+        saveProgress();
         render();
       }
     }
 
     function next() {
-      if (currentIndex < bars.length - 1) {
+      if (currentIndex < bars.length) {
+        // If current bar is unrated, mark as skip
+        var barId = String(currentIndex);
+        if (!ratings[barId]) {
+          ratings[barId] = 'skip';
+          saveProgress();
+        }
+
         currentIndex++;
+        saveProgress();
         render();
       }
     }
 
     function exportApproved() {
-      const approved = bars.filter(b => ratings[b.sid] === 'yes');
-      const jsonl = approved.map(b => JSON.stringify(b)).join('\n');
+      try {
+        var approved = [];
+        for (var i = 0; i < bars.length; i++) {
+          if (ratings[String(i)] === 'yes') {
+            approved.push(bars[i]);
+          }
+        }
 
-      const blob = new Blob([jsonl], { type: 'application/jsonl' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'approved-bars.jsonl';
-      a.click();
-      URL.revokeObjectURL(url);
+        if (approved.length === 0) {
+          alert('No approved bars to export!');
+          return;
+        }
+
+        var jsonl = approved.map(function(b) { return JSON.stringify(b); }).join('\n');
+        var blob = new Blob([jsonl], { type: 'application/jsonl' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'approved-bars-' + approved.length + '.jsonl';
+        a.click();
+        URL.revokeObjectURL(url);
+
+        console.log('Exported', approved.length, 'approved bars');
+      } catch (e) {
+        console.error('Export failed:', e);
+        alert('Export failed: ' + e.message);
+      }
     }
 
-    // File input handler
-    document.getElementById('file-input').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+    // =========================================================================
+    // KEYBOARD
+    // =========================================================================
+    document.addEventListener('keydown', function(e) {
+      if (bars.length === 0) return;
 
-      const text = await file.text();
-      bars = text.trim().split('\n').map(line => JSON.parse(line));
+      // Don't capture if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-      // Find first unreviewed bar
-      while (currentIndex < bars.length && ratings[bars[currentIndex].sid]) {
-        currentIndex++;
+      var key = e.key.toLowerCase();
+
+      if (key === 'y') {
+        e.preventDefault();
+        rate('yes');
+      } else if (key === 'n') {
+        e.preventDefault();
+        rate('no');
+      } else if (key === 's') {
+        e.preventDefault();
+        rate('skip');
+      } else if (key === 'arrowleft') {
+        e.preventDefault();
+        prev();
+      } else if (key === 'arrowright') {
+        e.preventDefault();
+        next();
       }
-
-      render();
     });
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-      if (bars.length === 0 || currentIndex >= bars.length) return;
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    function init() {
+      loadProgress();
 
-      switch(e.key.toLowerCase()) {
-        case 'y': rate('yes'); break;
-        case 'n': rate('no'); break;
-        case 's': rate('skip'); break;
-        case 'arrowleft': prev(); break;
-        case 'arrowright': next(); break;
-      }
-    });
+      fetch('reference/review-bars.jsonl')
+        .then(function(response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.text();
+        })
+        .then(function(text) {
+          bars = text.trim().split('\n').map(function(line) {
+            return JSON.parse(line);
+          });
+
+          console.log('Loaded', bars.length, 'bars');
+
+          // If we have more ratings than bars, something is wrong - reset
+          var ratingCount = Object.keys(ratings).length;
+          if (ratingCount > bars.length) {
+            console.warn('Rating count exceeds bar count, resetting...');
+            ratings = {};
+            currentIndex = 0;
+            saveProgress();
+          }
+
+          // Clamp currentIndex
+          if (currentIndex > bars.length) {
+            currentIndex = bars.length;
+            saveProgress();
+          }
+
+          render();
+        })
+        .catch(function(e) {
+          console.error('Failed to load bars:', e);
+          document.getElementById('app').innerHTML =
+            '<div class="error">Failed to load bars: ' + e.message + '</div>';
+        });
+    }
+
+    init();
   </script>
 </body>
 </html>
