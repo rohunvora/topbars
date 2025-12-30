@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review Bars - Pass 3</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 1.5rem;
+    }
+    .stats {
+      text-align: center;
+      color: #888;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+    .progress-bar {
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+      transition: width 0.3s;
+    }
+    .bar-card {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .bar-text {
+      font-size: 1.3rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .bar-meta {
+      display: flex;
+      gap: 16px;
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+    }
+    .technique-tag {
+      background: #3b82f6;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+    button {
+      flex: 1;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+    }
+    button:hover { transform: scale(1.02); }
+    button:active { transform: scale(0.98); }
+    .btn-yes {
+      background: #22c55e;
+      color: white;
+    }
+    .btn-no {
+      background: #ef4444;
+      color: white;
+    }
+    .btn-skip {
+      background: #6b7280;
+      color: white;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .nav-buttons button {
+      background: #374151;
+      color: #ddd;
+    }
+    .export-section {
+      margin-top: 40px;
+      padding: 20px;
+      background: #16213e;
+      border-radius: 12px;
+    }
+    .export-section h2 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+    }
+    .export-btn {
+      background: #8b5cf6;
+      color: white;
+      width: 100%;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .summary-item {
+      text-align: center;
+    }
+    .summary-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .summary-label {
+      color: #888;
+      font-size: 0.85rem;
+    }
+    .done-message {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .done-message h2 {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+    .keyboard-hint {
+      text-align: center;
+      color: #666;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    .file-input-wrapper {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    .file-input-wrapper p {
+      margin-bottom: 20px;
+      color: #888;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-label {
+      display: inline-block;
+      padding: 14px 28px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .file-label:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Review Bars - Pass 3</h1>
+
+    <div id="app">
+      <div class="file-input-wrapper">
+        <p>Load the bars file to start reviewing</p>
+        <label class="file-label">
+          <input type="file" id="file-input" accept=".jsonl">
+          Load review-bars.jsonl
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let bars = [];
+    let currentIndex = 0;
+    let ratings = {}; // sid -> 'yes' | 'no' | 'skip'
+
+    // Load saved progress
+    const saved = localStorage.getItem('bar-review-progress');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        ratings = data.ratings || {};
+        currentIndex = data.currentIndex || 0;
+      } catch (e) {}
+    }
+
+    function saveProgress() {
+      localStorage.setItem('bar-review-progress', JSON.stringify({
+        ratings,
+        currentIndex
+      }));
+    }
+
+    function render() {
+      const app = document.getElementById('app');
+
+      if (bars.length === 0) {
+        return; // Still showing file input
+      }
+
+      const reviewed = Object.keys(ratings).length;
+      const yes = Object.values(ratings).filter(r => r === 'yes').length;
+      const no = Object.values(ratings).filter(r => r === 'no').length;
+      const progress = (reviewed / bars.length) * 100;
+
+      if (currentIndex >= bars.length) {
+        app.innerHTML = `
+          <div class="done-message">
+            <h2>All Done!</h2>
+            <p>You've reviewed all ${bars.length} bars.</p>
+          </div>
+          <div class="export-section">
+            <div class="summary">
+              <div class="summary-item">
+                <div class="summary-value" style="color: #22c55e">${yes}</div>
+                <div class="summary-label">Approved</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" style="color: #ef4444">${no}</div>
+                <div class="summary-label">Rejected</div>
+              </div>
+              <div class="summary-item">
+                <div class="summary-value" style="color: #6b7280">${reviewed - yes - no}</div>
+                <div class="summary-label">Skipped</div>
+              </div>
+            </div>
+            <button class="export-btn" onclick="exportApproved()">Export Approved Bars</button>
+          </div>
+        `;
+        return;
+      }
+
+      const bar = bars[currentIndex];
+      const existingRating = ratings[bar.sid];
+
+      app.innerHTML = `
+        <div class="stats">
+          ${currentIndex + 1} of ${bars.length} • ${yes} approved • ${no} rejected
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+
+        <div class="bar-card">
+          <div class="bar-text">"${bar.text}"</div>
+          <div class="bar-meta">
+            <span class="technique-tag">${bar.technique_type}</span>
+            <span>Score: ${bar.score}</span>
+            <span>Votes: ${bar.votes}</span>
+            ${existingRating ? `<span style="color: ${existingRating === 'yes' ? '#22c55e' : existingRating === 'no' ? '#ef4444' : '#6b7280'}">• ${existingRating.toUpperCase()}</span>` : ''}
+          </div>
+          <div class="buttons">
+            <button class="btn-yes" onclick="rate('yes')">✓ Good Example</button>
+            <button class="btn-no" onclick="rate('no')">✗ Not Good</button>
+            <button class="btn-skip" onclick="rate('skip')">Skip</button>
+          </div>
+        </div>
+
+        <div class="nav-buttons">
+          <button onclick="prev()" ${currentIndex === 0 ? 'disabled' : ''}>← Previous</button>
+          <button onclick="next()">Next →</button>
+        </div>
+
+        <div class="keyboard-hint">
+          Keyboard: Y = approve, N = reject, S = skip, ← → = navigate
+        </div>
+
+        <div class="export-section">
+          <h2>Export Progress</h2>
+          <div class="summary">
+            <div class="summary-item">
+              <div class="summary-value" style="color: #22c55e">${yes}</div>
+              <div class="summary-label">Approved</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-value" style="color: #ef4444">${no}</div>
+              <div class="summary-label">Rejected</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-value" style="color: #6b7280">${reviewed - yes - no}</div>
+              <div class="summary-label">Skipped</div>
+            </div>
+          </div>
+          <button class="export-btn" onclick="exportApproved()">Export Approved Bars</button>
+        </div>
+      `;
+    }
+
+    function rate(rating) {
+      const bar = bars[currentIndex];
+      ratings[bar.sid] = rating;
+      saveProgress();
+      currentIndex++;
+      render();
+    }
+
+    function prev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        render();
+      }
+    }
+
+    function next() {
+      if (currentIndex < bars.length - 1) {
+        currentIndex++;
+        render();
+      }
+    }
+
+    function exportApproved() {
+      const approved = bars.filter(b => ratings[b.sid] === 'yes');
+      const jsonl = approved.map(b => JSON.stringify(b)).join('\n');
+
+      const blob = new Blob([jsonl], { type: 'application/jsonl' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'approved-bars.jsonl';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // File input handler
+    document.getElementById('file-input').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      bars = text.trim().split('\n').map(line => JSON.parse(line));
+
+      // Find first unreviewed bar
+      while (currentIndex < bars.length && ratings[bars[currentIndex].sid]) {
+        currentIndex++;
+      }
+
+      render();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (bars.length === 0 || currentIndex >= bars.length) return;
+
+      switch(e.key.toLowerCase()) {
+        case 'y': rate('yes'); break;
+        case 'n': rate('no'); break;
+        case 's': rate('skip'); break;
+        case 'arrowleft': prev(); break;
+        case 'arrowright': next(); break;
+      }
+    });
+  </script>
+</body>
+</html>
