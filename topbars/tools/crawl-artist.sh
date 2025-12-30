@@ -21,10 +21,18 @@
 #       -H "Authorization: Bearer $GENIUS_ACCESS_TOKEN" | jq '.response.hits[0].result.primary_artist.id'
 #
 # KNOWN ARTIST IDS:
-#   Ken Carson:  1812129
-#   OsamaSon:    3270750
-#   Nettspend:   3406257
-#   Yeat:        1476681
+#   Ken Carson:   1812129
+#   OsamaSon:     3270750
+#   Nettspend:    3406257
+#   Yeat:         1476681
+#   Drake:        130
+#   Frank Ocean:  1985
+#   BabyTron:     1907668
+#   Bo Burnham:   979
+#   Jean Dawson:  1826780
+#   Lil B:        455
+#   BROCKHAMPTON: 323651
+#   Swapa:        2712614
 #
 # OUTPUT FORMAT (JSONL - one JSON object per line):
 #   {
@@ -56,21 +64,22 @@ set -e
 
 # Check for Genius API token
 if [ -z "$GENIUS_ACCESS_TOKEN" ]; then
-  # Try loading from .env
+  # Try loading from .env (check both GENIUS_ACCESS_TOKEN and CLIENT_ACCESS_TOKEN)
   if [ -f ".env" ]; then
-    export $(grep GENIUS_ACCESS_TOKEN .env | xargs)
+    export $(grep -E "^(GENIUS_ACCESS_TOKEN|CLIENT_ACCESS_TOKEN)=" .env 2>/dev/null | xargs)
   elif [ -f "../.env" ]; then
-    export $(grep GENIUS_ACCESS_TOKEN ../.env | xargs)
+    export $(grep -E "^(GENIUS_ACCESS_TOKEN|CLIENT_ACCESS_TOKEN)=" ../.env 2>/dev/null | xargs)
   fi
 fi
 
-if [ -z "$GENIUS_ACCESS_TOKEN" ]; then
+# Use GENIUS_ACCESS_TOKEN if set, otherwise fall back to CLIENT_ACCESS_TOKEN
+TOKEN="${GENIUS_ACCESS_TOKEN:-$CLIENT_ACCESS_TOKEN}"
+
+if [ -z "$TOKEN" ]; then
   echo "Error: GENIUS_ACCESS_TOKEN not set"
   echo "Add to .env file or export GENIUS_ACCESS_TOKEN=your_token"
   exit 1
 fi
-
-TOKEN="$GENIUS_ACCESS_TOKEN"
 ARTIST_ID=${1:-}
 OUTPUT=${2:-/dev/stdout}
 
@@ -78,10 +87,12 @@ if [ -z "$ARTIST_ID" ]; then
   echo "Usage: ./tools/crawl-artist.sh <artist_id> [output_file]"
   echo ""
   echo "Known artist IDs:"
-  echo "  Ken Carson:  1812129"
-  echo "  OsamaSon:    3270750"
-  echo "  Nettspend:   3406257"
-  echo "  Yeat:        1476681"
+  echo "  Ken Carson:   1812129    Drake:        130"
+  echo "  OsamaSon:     3270750    Frank Ocean:  1985"
+  echo "  Nettspend:    3406257    BabyTron:     1907668"
+  echo "  Yeat:         1476681    Bo Burnham:   979"
+  echo "  Jean Dawson:  1826780    Lil B:        455"
+  echo "  BROCKHAMPTON: 323651     Swapa:        2712614"
   exit 1
 fi
 
