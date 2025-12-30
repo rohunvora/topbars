@@ -349,18 +349,30 @@
       for (const result of results) {
         if (result.error) continue;
 
-        // Parse the output to extract individual bars
-        const bars = parseOutput(result.output);
-
-        for (const bar of bars) {
+        // Detect format: curated (has .text) vs test results (has .output)
+        if (result.text) {
+          // Curated format - already parsed
           allBars.push({
             id: id++,
-            category: result.category,
+            category: result.category || 'curated',
             input: result.input,
-            text: bar.text,
-            technique: bar.technique,
-            why: bar.why
+            text: result.text,
+            technique: result.technique || '',
+            why: result.why || ''
           });
+        } else if (result.output) {
+          // Test results format - needs parsing
+          const bars = parseOutput(result.output);
+          for (const bar of bars) {
+            allBars.push({
+              id: id++,
+              category: result.category,
+              input: result.input,
+              text: bar.text,
+              technique: bar.technique,
+              why: bar.why
+            });
+          }
         }
       }
 
