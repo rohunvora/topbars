@@ -399,7 +399,23 @@
     function parseOutput(output) {
       const bars = [];
 
-      // Split output by "BAR 1:", "BAR 2:", "BAR 3:" patterns
+      // Try new v2 format first: "1: text", "2: text", "3: text"
+      const v2Lines = output.split('\n').filter(l => /^\d+:\s*.+/.test(l.trim()));
+      if (v2Lines.length > 0) {
+        for (const line of v2Lines) {
+          const match = line.match(/^\d+:\s*(.+)$/);
+          if (match && match[1].length > 3) {
+            bars.push({
+              text: cleanBarText(match[1].trim()),
+              technique: '',
+              why: ''
+            });
+          }
+        }
+        return bars;
+      }
+
+      // Fall back to old format: "BAR 1:", "BAR 2:", "BAR 3:"
       const sections = output.split(/BAR \d+:\s*/);
 
       for (let i = 1; i < sections.length; i++) {
